@@ -14,6 +14,7 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DB_DIR = '/var/lib/postgresql/10/main'
 
 
 # Quick-start development settings - unsuitable for production
@@ -37,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users',
+    'events',
 ]
 
 MIDDLEWARE = [
@@ -76,7 +79,8 @@ WSGI_APPLICATION = 'righthear.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.path.join(BASE_DIR, 'righthear'),
+        # 'NAME': os.path.join(BASE_DB_DIR, 'rhdb'),
+        'NAME': 'rhdb',
         'USER': 'postgres',
         'HOST': 'localhost',
         'PORT': 5432,
