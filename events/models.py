@@ -8,19 +8,28 @@ class EventCategory(models.Model):
     title = models.CharField(max_length=20)
     image = models.ImageField()
 
+    def __str__(self):
+        return self.title
+
 
 class EventSubCategory(models.Model):
     category = models.ForeignKey(EventCategory, on_delete=models.CASCADE)
     title = models.CharField(max_length=20)
     image = models.ImageField()
 
+    def __str__(self):
+        return self.title
+
 
 class Venue(models.Model):
     name = models.CharField(max_length=100)
     street_address = models.CharField(max_length=200)
     city = models.CharField(max_length=50)
-    link = models.URLField()
-    phone_number = models.CharField(max_length=20)
+    link = models.URLField(blank=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+
+    def __str__(self):
+        return self.name + ' - ' + self.city
 
 
 class Media(models.Model):
@@ -41,15 +50,18 @@ class Media(models.Model):
     created_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
     type = models.CharField(max_length=3, choices=MEDIA_TYPE_CHOICES.items(), default=TYPE_IMAGE)
     source = models.CharField(max_length=10, choices=MEDIA_SOURCE_CHOICES.items(), default=SOURCE_EVENT)
-    link = models.URLField()
+    link = models.URLField(blank=True)
 
 
 class Artist(models.Model):
     first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    image = models.ImageField()
+    last_name = models.CharField(max_length=50, null=True, blank=True)
+    image = models.ImageField(blank=True)
     category = models.ForeignKey(EventCategory, on_delete=models.SET_NULL, null=True)
-    media = models.ManyToManyField(Media)
+    media = models.ManyToManyField(Media, blank=True)
+
+    def __str__(self):
+        return self.first_name + ' ' + self.last_name
 
 
 class EventPromotion(models.Model):
@@ -73,13 +85,16 @@ class Event(models.Model):
     title = models.CharField(db_index=True, max_length=200, blank=True)
     short_description = models.CharField(max_length=200, blank=True)
     description = models.CharField(max_length=1000, blank=True)
-    artist = models.ForeignKey(Artist, on_delete=models.SET_NULL, null=True)
+    artist = models.ForeignKey(Artist, on_delete=models.SET_NULL, null=True, blank=True)
     price = models.IntegerField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    promotion = models.ForeignKey(EventPromotion, on_delete=models.SET_NULL, null=True)
+    promotion = models.ForeignKey(EventPromotion, on_delete=models.SET_NULL, null=True, blank=True)
     venue = models.ForeignKey(Venue, on_delete=models.SET_NULL, null=True)
-    media = models.ManyToManyField(Media)
+    media = models.ManyToManyField(Media, blank=True)
+
+    def __str__(self):
+        return self.title + ' (' + self.category.title + ')' + ' - ' + self.venue.name
 
 
 class UserSwipeAction(models.Model):
