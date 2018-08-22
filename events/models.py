@@ -5,17 +5,23 @@ from users.models import UserProfile
 
 
 class EventCategory(models.Model):
+    def event_category_media_path(instance, filename):
+        return 'categories/{0}_{1}.{2}'.format(instance.id, instance.title, filename[-3:])
+
     title = models.CharField(max_length=20)
-    image = models.ImageField()
+    image = models.ImageField(upload_to=event_category_media_path)
 
     def __str__(self):
         return self.title
 
 
 class EventSubCategory(models.Model):
+    def event_sub_category_media_path(instance, filename):
+        return 'subcategories/{0}_{1}.{2}'.format(instance.id, instance.title, filename[-3:])
+
     category = models.ForeignKey(EventCategory, on_delete=models.CASCADE)
     title = models.CharField(max_length=20)
-    image = models.ImageField()
+    image = models.ImageField(upload_to=event_sub_category_media_path)
 
     def __str__(self):
         return self.title
@@ -54,9 +60,12 @@ class Media(models.Model):
 
 
 class Artist(models.Model):
+    def artist_media_path(instance, filename):
+        return 'artists/{0}/{1}'.format(instance.id, filename)
+
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, null=True, blank=True)
-    image = models.ImageField(blank=True)
+    image = models.ImageField(upload_to=artist_media_path, blank=True)
     category = models.ForeignKey(EventCategory, on_delete=models.SET_NULL, null=True)
     media = models.ManyToManyField(Media, blank=True)
 
