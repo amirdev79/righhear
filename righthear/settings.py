@@ -15,7 +15,7 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DB_DIR = '/var/lib/postgresql/10/main'
-PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # .../musbase/bartok
+PROJECT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '..') # .../righthear
 
 BASE_STORAGE_PATH = '/rhdata'
 
@@ -25,10 +25,7 @@ MEDIA_ROOT = os.path.join(BASE_STORAGE_PATH, 'media')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_STORAGE_PATH, 'static')
 
-STATICFILES_DIRS = (
-    PROJECT_DIR + '/static',
-    ('manticore', PROJECT_DIR + '/manticore/manticore-angular/app'),
-)
+STATICFILES_DIRS = (PROJECT_DIR + '/static',)
 
 
 # Quick-start development settings - unsuitable for production
