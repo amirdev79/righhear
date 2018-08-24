@@ -61,7 +61,7 @@ class Media(models.Model):
 
 class Artist(models.Model):
     def artist_media_path(instance, filename):
-        return 'artists/{0}/{1}'.format(instance.id, filename)
+        return 'artists/{0}/{1}'.format(instance.id if instance else 'new', filename)
 
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, null=True, blank=True)
