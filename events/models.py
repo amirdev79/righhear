@@ -58,6 +58,9 @@ class Media(models.Model):
     source = models.CharField(max_length=10, choices=MEDIA_SOURCE_CHOICES.items(), default=SOURCE_EVENT)
     link = models.URLField(blank=True)
 
+    def __str__(self):
+        return self.link[self.link.rfind('/')+1:] + ' (' +self.type + ')'
+
 
 class Artist(models.Model):
     def artist_media_path(instance, filename):
@@ -70,7 +73,7 @@ class Artist(models.Model):
     media = models.ManyToManyField(Media, blank=True)
 
     def __str__(self):
-        return self.first_name + ' ' + self.last_name
+        return str(self.id) + ' - ' + self.first_name + ' ' + self.last_name
 
 
 class EventPromotion(models.Model):
