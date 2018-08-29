@@ -76,19 +76,6 @@ class Artist(models.Model):
         return str(self.id) + ' - ' + self.first_name + ' ' + self.last_name
 
 
-class EventPromotion(models.Model):
-    TYPE_DISCOUNT, TYPE_TICKETS_LEFT, TYPE_FOOD_COUPON = 'DC', 'TL', 'FC'
-    PROMOTION_TYPE_CHOICES = {
-        TYPE_DISCOUNT: u'Discount',
-        TYPE_TICKETS_LEFT: u'Tickets Left',
-        TYPE_FOOD_COUPON: u'Food Coupon',
-    }
-
-    type = models.IntegerField(choices=PROMOTION_TYPE_CHOICES.items())
-    style = JSONField(blank=True, null=True)
-    text = models.CharField(max_length=20, null=True, blank=True)
-
-
 class Event(models.Model):
     create_time = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
@@ -101,7 +88,7 @@ class Event(models.Model):
     price = models.IntegerField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
-    promotion = models.ForeignKey(EventPromotion, on_delete=models.SET_NULL, null=True, blank=True)
+    promotion = JSONField(null=True, blank=True)
     venue = models.ForeignKey(Venue, on_delete=models.SET_NULL, null=True)
     media = models.ManyToManyField(Media, blank=True)
 
