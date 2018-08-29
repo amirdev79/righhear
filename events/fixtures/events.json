@@ -36,9 +36,33 @@
       "title": "Jazz"
     }
   },
-  {
+    {
     "model": "events.EventSubCategory",
     "pk": 3,
+    "fields": {
+      "category": "1",
+      "title": "Folk"
+    }
+  },
+    {
+    "model": "events.EventSubCategory",
+    "pk": 4,
+    "fields": {
+      "category": "1",
+      "title": "Electronic"
+    }
+  },
+    {
+    "model": "events.EventSubCategory",
+    "pk": 5,
+    "fields": {
+      "category": "1",
+      "title": "Flamenco"
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 6,
     "fields": {
       "category": "2",
       "title": "Soccer"
@@ -46,7 +70,7 @@
   },
   {
     "model": "events.EventSubCategory",
-    "pk": 4,
+    "pk": 7,
     "fields": {
       "category": "2",
       "title": "BasketBall"

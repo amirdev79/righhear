@@ -1,0 +1,127 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$120000$J20TnAYv92f8$kDs/40HFDicj6Df2ZDMDW3oFOMFrY9uowqciZXaTWf4=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "amir",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-08-29T17:29:26.102Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$120000$2DVnnpB6zbQl$nmayqKNMEWgZN2FMPKX3hSEaHErX1mylnLWE3Vhujrk=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "adva",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-08-29T17:29:34.178Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+      "password": "pbkdf2_sha256$120000$YgFUnY1WXXwj$Klhy/ZpyGrsgSAqmPXBACCc2Vjnia37bkBHYI55zHy0=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "aviv",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-08-29T17:29:43.990Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 4,
+    "fields": {
+      "password": "pbkdf2_sha256$120000$jcnudmyRfrEq$Ehshdj+kEmi/MH0C0YgC3W+23a4Y7KzpLtGNsyKMe7c=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "yoav",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-08-29T17:29:54.836Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "auth.user",
+    "pk": 5,
+    "fields": {
+      "password": "pbkdf2_sha256$120000$MK1qurcEvCml$8i2kq0pmM4NyW32tpygNn0jsdQsfZvERgcQFrEjkqaA=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "noam",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2018-08-29T17:30:01.711Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "users.UserProfile",
+    "pk": 1,
+    "fields": {
+      "user": "1"
+    }
+  },
+  {
+    "model": "users.UserProfile",
+    "pk": 2,
+    "fields": {
+      "user": "2"
+    }
+  },
+  {
+    "model": "users.UserProfile",
+    "pk": 3,
+    "fields": {
+      "user": "3"
+    }
+  },
+  {
+    "model": "users.UserProfile",
+    "pk": 4,
+    "fields": {
+      "user": "4"
+    }
+  },
+  {
+    "model": "users.UserProfile",
+    "pk": 5,
+    "fields": {
+      "user": "5"
+    }
+  }
+]
