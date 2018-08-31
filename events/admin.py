@@ -4,10 +4,10 @@ from django.contrib import admin
 from events.models import Event, EventCategory, EventSubCategory, Venue, Artist, UserSwipeAction, Media
 
 class ArtistAdmin(admin.ModelAdmin):
-    filter_horizontal = ('media',)
+    filter_horizontal = ('media', 'sub_categories',)
 
 class EventAdmin(admin.ModelAdmin):
-    filter_horizontal = ('media',)
+    filter_horizontal = ('media', 'sub_categories',)
 
 
 admin.site.register(Event, EventAdmin)
