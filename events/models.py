@@ -79,21 +79,22 @@ class Artist(models.Model):
     last_name = models.CharField(max_length=50, null=True, blank=True)
     image = models.ImageField(upload_to=artist_media_path, blank=True)
     category = models.ForeignKey(EventCategory, on_delete=models.SET_NULL, null=True)
+    sub_categories = models.ManyToManyField(EventSubCategory)
     media = models.ManyToManyField(Media, blank=True)
 
     def __str__(self):
-        return str(self.id) + ' - ' + self.first_name + ' ' + self.last_name
+        return str(self.id) + ' - ' + self.first_name + ' ' + self.last_name or ''
 
 
 class Event(models.Model):
     create_time = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
     category = models.ForeignKey(EventCategory, on_delete=models.SET_NULL, null=True)
-    sub_category = models.ForeignKey(EventSubCategory, on_delete=models.SET_NULL, null=True)
+    sub_categories = models.ManyToManyField(EventSubCategory)
     title = models.CharField(db_index=True, max_length=200, blank=True)
     short_description = models.CharField(max_length=200, blank=True)
     description = models.CharField(max_length=1000, blank=True)
-    artist = models.ForeignKey(Artist, on_delete=models.SET_NULL, null=True, blank=True)
+    artist = models.ForeignKey(Artist, on_delete=models.SET_NULL, null=True)
     price = models.IntegerField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
