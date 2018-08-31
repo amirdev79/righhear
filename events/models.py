@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 
+from events.utils import get_address_geocode
 from users.models import UserProfile
 
 
@@ -33,6 +34,14 @@ class Venue(models.Model):
     city = models.CharField(max_length=50)
     link = models.URLField(blank=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
+
+    def save(self, *args, **kwargs):
+        lat, lng = get_address_geocode(self.street_address + ' ' + self.city)
+        self.latitude = lat
+        self.longitude = lng;
+        super(Venue, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name + ' - ' + self.city
