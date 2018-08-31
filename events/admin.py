@@ -7,6 +7,7 @@ class ArtistAdmin(admin.ModelAdmin):
     filter_horizontal = ('media', 'sub_categories',)
 
 class EventAdmin(admin.ModelAdmin):
+    list_display = ('created_by', 'create_time', 'title', 'artist', 'venue', 'enabled')
     filter_horizontal = ('media', 'sub_categories',)
 
 

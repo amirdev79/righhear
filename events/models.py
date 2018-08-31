@@ -101,7 +101,7 @@ class Event(models.Model):
     promotion = JSONField(null=True, blank=True)
     venue = models.ForeignKey(Venue, on_delete=models.SET_NULL, null=True)
     media = models.ManyToManyField(Media, blank=True)
-    enabeld = models.BooleanField(default=True)
+    enabled = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title + ' (' + self.category.title + ')' + ' - ' + self.venue.name
