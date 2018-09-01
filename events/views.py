@@ -32,5 +32,5 @@ def get_events(request):
                   'media': [{'type': m.type, 'link': m.link, 'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in event.media.all()],
                   'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,
 
-              } for event in Event.objects.all()]
+              } for event in Event.objects.filter(enabled=True)]
     return JsonResponse(events, safe=False)
