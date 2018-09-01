@@ -48,6 +48,11 @@ class Venue(models.Model):
 
 
 class Media(models.Model):
+
+    def thumbnail_media_path(instance, filename):
+        return 'artists/{0}/{1}'.format(instance.id if instance.id else 'new', filename)
+
+
     TYPE_IMAGE, TYPE_AUDIO, TYPE_VIDEO = "IMG", "AUD", "VID"
     MEDIA_TYPE_CHOICES = {
         TYPE_IMAGE: "Image",
@@ -66,6 +71,8 @@ class Media(models.Model):
     type = models.CharField(max_length=3, choices=MEDIA_TYPE_CHOICES.items(), default=TYPE_IMAGE)
     source = models.CharField(max_length=10, choices=MEDIA_SOURCE_CHOICES.items(), default=SOURCE_EVENT)
     link = models.URLField(blank=True)
+    thumbnail = models.ImageField(upload_to=thumbnail_media_path, blank=True)
+
 
     def __str__(self):
         return self.link[self.link.rfind('/')+1:] + ' (' +self.type + ')'
@@ -73,7 +80,7 @@ class Media(models.Model):
 
 class Artist(models.Model):
     def artist_media_path(instance, filename):
-        return 'artists/{0}/{1}'.format(instance.id if instance else 'new', filename)
+        return 'artists/{0}/{1}'.format(instance.id if instance.id else 'new', filename)
 
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50, null=True, blank=True)

@@ -18,7 +18,7 @@ def get_events(request):
                                'image': event.category.image.url if event.category.image else ''},
                   'subCategories': [{'title': s.title,
                                   'image': s.image.url if s.image else ''} for s in event.sub_categories.all()],
-                  'shortDescription': event.description,
+                  'shortDescription': event.short_description,
                   'description': event.description,
                   'price': event.price,
                   'startTime': event.start_time.strftime("%d.%m at %H:%M"),
@@ -29,7 +29,7 @@ def get_events(request):
                              'image': request.build_absolute_uri(event.artist.image.url),
                              'media': [{'type': m.type, 'link': m.link} for m in
                                        event.artist.media.all()]} if event.artist else None,
-                  'media': [{'type': m.type, 'link': m.link} for m in event.media.all()],
+                  'media': [{'type': m.type, 'link': m.link, 'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in event.media.all()],
                   'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,
 
               } for event in Event.objects.all()]
