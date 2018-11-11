@@ -1,10 +1,15 @@
-from django.http import JsonResponse
+from django.contrib.auth.models import User
+
+from django.http import HttpResponse, JsonResponse
 
 # Create your views here.
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from users.models import UserProfile
-from utils.network import parse_request
+from users.models import UserProfile, UserDevice
+from users.utils import up_to_json
+from utils.network import parse_request, ERROR_USER_EXISTS
+import json
 
 
 @csrf_exempt
@@ -12,17 +17,33 @@ def login(request):
     username, password = parse_request(request, ['username', 'password'])
 
     up = UserProfile.objects.get(user__username=username)
-    up_json = {'firstName': up.user.first_name,
-               'lastName': up.user.last_name,
-               'username': up.user.username,
-               'categories': [{
-                                  'title': c.title,
-                                  'image': request.build_absolute_uri(c.image.url) if c.image else ''}
-                              for c in up.preferred_categories.all()],
-               'subCategories': [{
-                                     'categoryId': sc.id,
-                                     'title': sc.title,
-                                     'image': request.build_absolute_uri(sc.image.url) if sc.image else ''} for sc in
-                                 up.preferred_sub_categories.all()]}
+    up_json = up_to_json(up, request)
 
     return JsonResponse(up_json, safe=False)
+
+
+@csrf_exempt
+def register(request):
+    username, device_info, categories_ids = parse_request(request, ['username', 'deviceInfo', 'categoriesIds'])
+    print('device info: ' + device_info)
+    device_info = json.loads(device_info)
+    user, created = User.objects.get_or_create(username=username)
+    if not created:
+        return HttpResponse(status=ERROR_USER_EXISTS)
+    up = UserProfile.objects.create(user=user)
+    up.preferred_categories.add(categories_ids)
+
+    _di = lambda key: device_info.get(key)
+
+    ud_defatuls = {'os': _di('os'),
+                   'os_version': _di('osVersion'),
+                   'model': _di('model'),
+                   'timezone': _di('timezone'),
+                   'push_token': _di('pushToken'),
+                   'last_login': timezone.now(),
+                   'user': up}
+    ud, created = UserDevice.objects.get_or_create(device_id= device_info.get('deviceId'), defaults=ud_defatuls)
+    print ('created:' + str(created))
+    # User = User.objects.get_or_create(username='email', )
+    up_json = up_to_json(up, request)
+    return JsonResponse(up_json)
