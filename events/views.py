@@ -1,3 +1,5 @@
+from django.utils import timezone
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 
 from events.models import Event
@@ -8,7 +10,10 @@ def index(request):
 
 
 def get_events(request):
-    # return HttpResponse("Get Events :)")
+
+    valid = Q(title__isnull=False, artist__image__isnull=False, enabled=True, start_time__gte=timezone.now())
+    events = Event.objects.filter(valid)
+
     events = [{
                   'id': event.id,
                   'title': event.title,
@@ -32,5 +37,5 @@ def get_events(request):
                   'media': [{'type': m.type, 'link': m.link, 'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in event.media.all()],
                   'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,
 
-              } for event in Event.objects.filter(enabled=True)]
+              } for event in events]
     return JsonResponse(events, safe=False)
