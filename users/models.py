@@ -14,10 +14,14 @@ class UserProfile(models.Model):
 
 class UserDevice(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    device_id = models.CharField(max_length=50)
-    os = models.CharField(max_length=20, null=True)
-    os_version = models.CharField(max_length=20, null=True)
-    timezone = models.CharField(max_length=50, null=True)
-    model = models.CharField(max_length=50, null=True)
-    push_token = models.CharField(max_length=256, unique=True)
-    last_login = models.DateTimeField()
+    device_id = models.CharField(max_length=50, editable=False)
+    os = models.CharField(max_length=20, null=True, editable=False, blank=True)
+    os_version = models.CharField(max_length=20, null=True, editable=False, blank=True)
+    timezone = models.CharField(max_length=50, null=True, editable=False, blank=True)
+    model = models.CharField(max_length=50, null=True, editable=False, blank=True)
+    push_token = models.CharField(max_length=256, unique=True, editable=False, blank=True)
+    last_login = models.DateTimeField(editable=False, blank=True)
+
+    def __str__(self):
+        return self.user.username + ' ' + self.device_id + ' - '
+
