@@ -25,3 +25,21 @@ class UserDevice(models.Model):
     def __str__(self):
         return self.user.username + ' ' + self.device_id + ' - '
 
+
+class UserSwipeAction(models.Model):
+    ACTION_LEFT, ACTION_UP, ACTION_RIGHT, ACTION_DOWN = 'LEFT', 'UP', 'RIGHT', 'DOWN'
+
+    SWIPE_ACTION_CHOICES = {
+        ACTION_LEFT: "LEFT",
+        ACTION_UP: "UP",
+        ACTION_RIGHT: "RIGHT",
+        ACTION_DOWN: "DOWN",
+    }
+
+    action_time = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
+    event = models.ForeignKey('events.Event', on_delete=models.SET_NULL, null=True)
+    action = models.CharField(max_length=6, choices=SWIPE_ACTION_CHOICES.items(), default=ACTION_LEFT)
+
+    def __str__(self):
+        return self.user.username + ', ' + str(self.event.id) + ', ' + self.action

@@ -114,23 +114,6 @@ class Event(models.Model):
         return self.title + ' (' + self.category.title + ')' + ' - ' + self.venue.name
 
 
-class UserSwipeAction(models.Model):
-    TYPE_LEFT, TYPE_TOP, TYPE_RIGHT, TYPE_BOTTOM = 'LEFT', 'TOP', 'RIGHT', 'BOTTOM'
-
-    SWIPE_ACTION_TYPE_CHOICES = {
-        TYPE_LEFT: "Left",
-        TYPE_TOP: "Top",
-        TYPE_RIGHT: "Right",
-        TYPE_BOTTOM: "Bottom",
-    }
-
-    action_time = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
-    event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True)
-    type = models.CharField(max_length=6, choices=SWIPE_ACTION_TYPE_CHOICES.items(), default=TYPE_LEFT)
-
-
-
     # create_time: datetime
     # created_by - UserProfile
     # category: EventCategory

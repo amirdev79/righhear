@@ -1,6 +1,6 @@
-from django.utils import timezone
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
 
 from events.models import Event
 

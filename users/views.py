@@ -1,15 +1,13 @@
+import json
+
 from django.contrib.auth.models import User
-
 from django.http import HttpResponse, JsonResponse
-
-# Create your views here.
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from users.models import UserProfile, UserDevice
+from users.models import UserProfile, UserDevice, UserSwipeAction
 from users.utils import up_to_json
 from utils.network import parse_request, ERROR_USER_EXISTS
-import json
 
 
 @csrf_exempt
@@ -47,3 +45,9 @@ def register(request):
     # User = User.objects.get_or_create(username='email', )
     up_json = up_to_json(up, request)
     return JsonResponse(up_json)
+
+
+def add_swipe_action(request):
+    username, event_id, action = parse_request(request, ['username', 'eventId', 'action'])
+    UserSwipeAction.objects.create(user = request.user.userprofile, event_id=int(event_id), action=action, action_time=timezone.now())
+    return HttpResponse()
