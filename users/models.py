@@ -3,10 +3,9 @@ from django.db import models
 
 
 class UserProfile(models.Model):
-
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    preferred_categories = models.ManyToManyField('events.EventCategory');
-    preferred_sub_categories = models.ManyToManyField('events.EventSubCategory');
+    preferred_categories = models.ManyToManyField('events.EventCategory')
+    preferred_sub_categories = models.ManyToManyField('events.EventSubCategory')
 
     def __str__(self):
         return self.user.first_name + ' ' + self.user.last_name + ' - ' + self.user.username
@@ -42,4 +41,4 @@ class UserSwipeAction(models.Model):
     action = models.CharField(max_length=6, choices=SWIPE_ACTION_CHOICES.items(), default=ACTION_LEFT)
 
     def __str__(self):
-        return self.user.username + ', ' + str(self.event.id) + ', ' + self.action
+        return self.user.usernname + ', ' + str(self.event.id) + ', ' + self.action

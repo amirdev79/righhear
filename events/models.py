@@ -112,25 +112,3 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title + ' (' + self.category.title + ')' + ' - ' + self.venue.name
-
-
-    # create_time: datetime
-    # created_by - UserProfile
-    # category: EventCategory
-    # sub_cateogry: EventSubCategory
-    # title: text
-    # description: text
-    # artist: Artist
-    # price: number
-    # start_time: datetime
-    # end_time: datetime
-    # promotion: Many
-    # to
-    # Many
-    # EventPromotion
-    # venue: FK
-    # Venue ==
-    # media: Many
-    # to
-    # Many
-    # Media
