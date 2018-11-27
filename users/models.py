@@ -41,4 +41,4 @@ class UserSwipeAction(models.Model):
     action = models.IntegerField(choices=SWIPE_ACTION_CHOICES.items(), default=ACTION_LEFT)
 
     def __str__(self):
-        return self.user.usernname + ', ' + str(self.event.id) + ', ' + self.get_action_display()
+        return self.user.user.username + ', ' + str(self.event.id) + ', ' + self.SWIPE_ACTION_CHOICES[self.action]

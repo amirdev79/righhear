@@ -65,7 +65,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'righthear.urls'
 
-AUTHENTICATION_BACKENDS = ['utils.network.PasswordlessAuthBackend']
+AUTHENTICATION_BACKENDS = ['utils.network.PasswordlessAuthBackend', 'django.contrib.auth.backends.ModelBackend']
 
 TEMPLATES = [
     {
