@@ -1,5 +1,7 @@
 import json
 
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
@@ -20,6 +22,8 @@ def sign_in(request):
         print ('user created: username - ' + up.user.username)
     else:
         print ('user signed in: username - ' + up.user.username)
+    user = authenticate(username=username)
+    login(request, user)
     up.preferred_categories.clear()
     up.preferred_categories.add(*categories_ids)
     update_device_info(up ,device_info)
@@ -27,7 +31,9 @@ def sign_in(request):
     return JsonResponse(up_json)
 
 
+@csrf_exempt
+@login_required
 def add_swipe_action(request):
-    username, event_id, action = parse_request(request, ['username', 'eventId', 'action'])
-    UserSwipeAction.objects.create(user = request.user.userprofile, event_id=int(event_id), action=action, action_time=timezone.now())
+    event_id, action = parse_request(request, ['eventId', 'action'])
+    UserSwipeAction.objects.create(user=request.user.userprofile, event_id=event_id, action=action, action_time=timezone.now())
     return HttpResponse()

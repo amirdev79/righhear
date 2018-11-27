@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'events',
+    'utils',
 ]
 
 MIDDLEWARE = [
@@ -63,6 +64,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'righthear.urls'
+
+AUTHENTICATION_BACKENDS = ['utils.network.PasswordlessAuthBackend']
 
 TEMPLATES = [
     {

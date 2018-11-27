@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.db.utils import IntegrityError
 
 from users.models import UserDevice
 
@@ -28,4 +29,7 @@ def update_device_info(up, device_info):
                    'push_token': _di('pushToken'),
                    'last_login': timezone.now(),
                    'user': up}
-    ud, created = UserDevice.objects.get_or_create(device_id=device_info.get('deviceId'), defaults=ud_defatuls)
+    try:
+        ud, created = UserDevice.objects.update_or_create(device_id=_di('deviceId'), defaults=ud_defatuls)
+    except IntegrityError:
+        pass

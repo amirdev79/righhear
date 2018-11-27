@@ -26,19 +26,19 @@ class UserDevice(models.Model):
 
 
 class UserSwipeAction(models.Model):
-    ACTION_LEFT, ACTION_UP, ACTION_RIGHT, ACTION_DOWN = 'LEFT', 'UP', 'RIGHT', 'DOWN'
+    ACTION_UP, ACTION_LEFT, ACTION_DOWN, ACTION_RIGHT = 0, 1, 2, 3  # must match client code in SwipeHandler.java
 
     SWIPE_ACTION_CHOICES = {
-        ACTION_LEFT: "LEFT",
-        ACTION_UP: "UP",
-        ACTION_RIGHT: "RIGHT",
-        ACTION_DOWN: "DOWN",
+        ACTION_LEFT: 'LEFT',
+        ACTION_UP: 'UP',
+        ACTION_RIGHT: 'RIGHT',
+        ACTION_DOWN: 'DOWN',
     }
 
     action_time = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
     event = models.ForeignKey('events.Event', on_delete=models.SET_NULL, null=True)
-    action = models.CharField(max_length=6, choices=SWIPE_ACTION_CHOICES.items(), default=ACTION_LEFT)
+    action = models.IntegerField(choices=SWIPE_ACTION_CHOICES.items(), default=ACTION_LEFT)
 
     def __str__(self):
-        return self.user.usernname + ', ' + str(self.event.id) + ', ' + self.action
+        return self.user.usernname + ', ' + str(self.event.id) + ', ' + self.get_action_display()
