@@ -11,7 +11,7 @@ def index(request):
 
 def get_events(request):
 
-    valid = Q(title__isnull=False, artist__image__isnull=False, enabled=True, start_time__gte=timezone.now())
+    valid = Q(title__isnull=False, artist__image__isnull=False, enabled=True)#, start_time__gte=timezone.now())
     events = Event.objects.filter(valid)
 
     events = [{

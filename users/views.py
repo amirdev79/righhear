@@ -37,3 +37,17 @@ def add_swipe_action(request):
     event_id, action = parse_request(request, ['eventId', 'action'])
     UserSwipeAction.objects.create(user=request.user.userprofile, event_id=event_id, action=action, action_time=timezone.now())
     return HttpResponse()
+
+
+@csrf_exempt
+@login_required
+def update_user_profile(request):
+    categories_ids, = parse_request(request, lists=['categoriesIds'])
+    up = UserProfile.objects.get(user=request.user)
+    up.preferred_categories.clear()
+    up.preferred_categories.add(*categories_ids)
+    up_json = up_to_json(up, request)
+    return JsonResponse(up_json)
+
+
+
