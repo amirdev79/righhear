@@ -26,7 +26,7 @@ def get_events(request):
                   'shortDescription': event.short_description,
                   'description': event.description,
                   'price': event.price,
-                  'startTime': event.start_time.strftime("%d.%m at %H:%M"),
+                  'startTime': event.start_time.strftime("%b %d, %H:%M"),
                   'endTime': event.end_time.strftime("%d.%m - %H:%M"),
                   'venue': {'name': event.venue.name, 'streetAddress': event.venue.street_address,
                             'city': event.venue.city, 'lat': event.venue.latitude, 'lng': event.venue.longitude},

@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DB_DIR = '/var/lib/postgresql/10/main'
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # .../righthear
 
-BASE_STORAGE_PATH = '/rhdata'
+BASE_STORAGE_PATH = '/Users/noam/Documents/DEV/righthear/rhdata'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_STORAGE_PATH, 'media')
@@ -95,6 +95,7 @@ DATABASES = {
         # 'NAME': os.path.join(BASE_DB_DIR, 'rhdb'),
         'NAME': 'rhdb',
         'USER': 'postgres',
+        'PASSWORD': '6429005',
         'HOST': 'localhost',
         'PORT': 5432,
 
