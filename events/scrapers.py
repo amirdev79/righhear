@@ -15,7 +15,9 @@ now = datetime.datetime.now()
 tomorrow = datetime.date.today() + datetime.timedelta(days=1)
 easy_scraper_user = UserProfile.objects.get(user__username=settings.EASY_CO_IL_USERNAME)
 music_category = EventCategory.objects.get(id=1)
+bars_category = EventCategory.objects.get(id=5)
 music_event_default_image = ImageFile(open("static/images/events/categories_defauls/music_default.jpg", "rb"))
+bars_event_default_image = ImageFile(open("static/images/events/categories_defauls/bars_default.jpeg", "rb"))
 
 
 def _parse_theater_event(event_json):
@@ -144,7 +146,7 @@ def _parse_music_event(event_json):
 
 
 def _parse_bars_event(event_json):
-    title = event_json['bizname'][::-1]
+    title = event_json['bizname']
     _date, _time = None, None
     if not 'openhours' in event_json:
         start_time = None
@@ -165,4 +167,35 @@ def _parse_bars_event(event_json):
         else:
             start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y')
 
-    return {'title': title, 'start_time': start_time}
+    # get venue
+    print ('event json: ' + str(event_json.get('address')))
+    address_arr = event_json.get('address').split(',')
+    if len(address_arr) == 2:
+        street_address, city = address_arr
+    else:
+        street_address = city = address_arr[0]
+    bar_name = event_json.get('bizname')
+    venue, venue_created = Venue.objects.get_or_create(name=bar_name)
+
+    if venue_created:
+        print('venue created: ' + bar_name + ',city: ' + city)
+
+        venue.city = city
+        gmaps_address = get_gmaps_info(event_json.get('address'))
+        venue.street_address = gmaps_address['formatted_address']
+        venue.longitude, venue.latitude = event_json.get('lng'), event_json.get('lat')
+        venue.phone_number = event_json.get('phone')
+        venue.save()
+
+    # create event
+    defaults = {'venue': venue, 'created_by': easy_scraper_user}
+    event, event_created = Event.objects.get_or_create(title=title, start_time=start_time, category= music_category, defaults=defaults)
+    if event_created:
+        event.image = bars_event_default_image
+        event.save()
+        print ('event created: ' + str(event))
+
+    return event
+
+
+
