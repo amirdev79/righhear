@@ -87,6 +87,10 @@ class Artist(models.Model):
 
 
 class Event(models.Model):
+
+    def events_media_path(instance, filename):
+        return 'events/{0}/{1}'.format(instance.id if instance.id else 'new', filename)
+
     create_time = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
     category = models.ForeignKey(EventCategory, on_delete=models.SET_NULL, null=True)
@@ -102,6 +106,8 @@ class Event(models.Model):
     venue = models.ForeignKey(Venue, on_delete=models.SET_NULL, null=True)
     media = models.ManyToManyField(Media, blank=True)
     enabled = models.BooleanField(default=True)
+    image = models.ImageField(upload_to=events_media_path, blank=True)
+
 
     def __str__(self):
         return self.title #+ ' (' + self.category.title + ')' + ' - ' + self.venue.name

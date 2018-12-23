@@ -3,6 +3,7 @@ import json
 import re
 
 import requests
+from django.core.files.images import ImageFile
 
 from events.models import Venue, Event, EventCategory
 from events.utils import get_gmaps_info
@@ -14,6 +15,7 @@ now = datetime.datetime.now()
 tomorrow = datetime.date.today() + datetime.timedelta(days=1)
 easy_scraper_user = UserProfile.objects.get(user__username=settings.EASY_CO_IL_USERNAME)
 music_category = EventCategory.objects.get(id=1)
+music_event_default_image = ImageFile(open("static/images/events/categories_defauls/music_default.jpg", "rb"))
 
 
 def _parse_theater_event(event_json):
@@ -134,6 +136,8 @@ def _parse_music_event(event_json):
     defaults = {'venue': venue, 'price': price, 'created_by': easy_scraper_user}
     event, event_created = Event.objects.get_or_create(title=title, start_time=start_time, category= music_category, defaults=defaults)
     if event_created:
+        event.image = music_event_default_image
+        event.save()
         print ('event created: ' + str(event))
 
     return event
