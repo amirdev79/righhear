@@ -141,3 +141,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 GOOGLE_API_KEY = 'AIzaSyCcESmpfQinXSNCbVVnIbAVq3MWbcs_v_o'
+
+EASY_CO_IL_USERNAME = 'easy_scraper'

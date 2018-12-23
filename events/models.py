@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 
-from events.utils import get_address_geocode
 from users.models import UserProfile
 
 
@@ -36,12 +35,6 @@ class Venue(models.Model):
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
-
-    def save(self, *args, **kwargs):
-        lat, lng = get_address_geocode(self.street_address + ' ' + self.city)
-        self.latitude = lat
-        self.longitude = lng;
-        super(Venue, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name + ' - ' + self.city
@@ -102,13 +95,13 @@ class Event(models.Model):
     short_description = models.CharField(max_length=200, blank=True)
     description = models.CharField(max_length=1000, blank=True)
     artist = models.ForeignKey(Artist, on_delete=models.SET_NULL, null=True)
-    price = models.IntegerField()
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    price = models.IntegerField(null=True)
+    start_time = models.DateTimeField(null=True)
+    end_time = models.DateTimeField(null=True)
     promotion = JSONField(null=True, blank=True)
     venue = models.ForeignKey(Venue, on_delete=models.SET_NULL, null=True)
     media = models.ManyToManyField(Media, blank=True)
     enabled = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.title + ' (' + self.category.title + ')' + ' - ' + self.venue.name
+        return self.title #+ ' (' + self.category.title + ')' + ' - ' + self.venue.name
