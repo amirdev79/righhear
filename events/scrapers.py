@@ -65,16 +65,34 @@ def _parse_standup_event(event_json):
 def scrape_easy(category):
     events_list = get_events(category)
 
+    new_music_events, new_music_venues, new_bars_events = [], [], []
+    total_music_events, total_bars_events = 0, 0
     if category == 'music':
-        events = [_parse_music_event(event) for event in events_list]
+        for event in events_list:
+            total_music_events+=1
+            event, event_created, venue, venue_created = _parse_music_event(event)
+            if event_created:
+                new_music_events.append(event)
+            if venue_created:
+                new_music_venues.append(venue)
+
     elif category == 'bars':
-        events = [_parse_bars_event(event) for event in events_list]
+        for event in events_list:
+            total_bars_events+=1
+            event, event_created = _parse_bars_event(event)
+            if event_created:
+                new_bars_events.append(event)
     elif category == 'theater':
         events = [_parse_theater_event(event) for event in events_list]
     elif category == 'standup':
         events = [_parse_standup_event(event) for event in events_list]
     else:
         events = []
+
+    print ('%d new music events added of total %d\n-------------------------------------------- %s' % (len(new_music_events), total_music_events, '\n'.join(new_music_events)))
+    print ('%d new music venues added of total %d:\n------------------------------------------- %s' % (len(new_music_venues), total_music_events, str(new_music_venues)))
+    print ('%d new bars venues added of total %d: %s' % (len(new_bars_events), total_bars_events, str(new_bars_events)))
+
 
 def get_events(category):
     events_list = []
@@ -142,7 +160,7 @@ def _parse_music_event(event_json):
         event.save()
         print ('event created: ' + str(event))
 
-    return event
+    return event, event_created, venue, venue_created
 
 
 def _parse_bars_event(event_json):
