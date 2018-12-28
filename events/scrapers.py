@@ -65,33 +65,41 @@ def _parse_standup_event(event_json):
 def scrape_easy(category):
     events_list = get_events(category)
 
-    new_music_events, new_music_venues, new_bars_events = [], [], []
+    new_music_events, new_music_venues, new_bars_events, new_bars_venues = [], [], [], []
     total_music_events, total_bars_events = 0, 0
     if category == 'music':
         for event in events_list:
-            total_music_events+=1
+            total_music_events += 1
             event, event_created, venue, venue_created = _parse_music_event(event)
             if event_created:
                 new_music_events.append(event)
             if venue_created:
                 new_music_venues.append(venue)
+        print('%d new music events added of total %d\n-------------------------------------------- %s' % (
+        len(new_music_events), total_music_events, '\n'.join([str(e) for e in new_music_events])))
+        print('%d new music venues added of total %d:\n------------------------------------------- %s' % (
+        len(new_music_venues), total_music_events, '\n'.join([str(v) for v in new_music_venues])))
 
     elif category == 'bars':
         for event in events_list:
-            total_bars_events+=1
-            event, event_created = _parse_bars_event(event)
+            total_bars_events += 1
+            event, event_created, venue, venue_created = _parse_bars_event(event)
             if event_created:
                 new_bars_events.append(event)
+            if venue_created:
+                new_bars_venues.append(venue)
+
+        print('%d new bars events added of total %d\n-------------------------------------------- %s' % (
+            len(new_bars_events), total_bars_events, '\n'.join([str(e) for e in new_bars_events])))
+        print('%d new bars venues added of total %d:\n------------------------------------------- %s' % (
+            len(new_bars_venues), total_bars_events,'\n'.join([str(v) for v in new_bars_venues])))
+
     elif category == 'theater':
         events = [_parse_theater_event(event) for event in events_list]
     elif category == 'standup':
         events = [_parse_standup_event(event) for event in events_list]
     else:
         events = []
-
-    print ('%d new music events added of total %d\n-------------------------------------------- %s' % (len(new_music_events), total_music_events, '\n'.join(new_music_events)))
-    print ('%d new music venues added of total %d:\n------------------------------------------- %s' % (len(new_music_venues), total_music_events, str(new_music_venues)))
-    print ('%d new bars venues added of total %d: %s' % (len(new_bars_events), total_bars_events, str(new_bars_events)))
 
 
 def get_events(category):
@@ -104,7 +112,7 @@ def get_events(category):
             url += '&listpage=' + str(current_page)
         response = requests.get(url)
         print('url: ' + 'https://easy.co.il/json/list.json?c=%d&listpage=%s' % (
-        EASY_CATEGORIES.get(category), str(current_page) if current_page > 0 else ''))
+            EASY_CATEGORIES.get(category), str(current_page) if current_page > 0 else ''))
         json_list = json.loads(response.content).get('bizlist')
         events_list += json_list.get('list')
         current_page += 1
@@ -154,11 +162,12 @@ def _parse_music_event(event_json):
 
     # create event
     defaults = {'venue': venue, 'price': price, 'created_by': easy_scraper_user}
-    event, event_created = Event.objects.get_or_create(title=title, start_time=start_time, category= music_category, defaults=defaults)
+    event, event_created = Event.objects.get_or_create(title=title, start_time=start_time, category=music_category,
+                                                       defaults=defaults)
     if event_created:
         event.image = music_event_default_image
         event.save()
-        print ('event created: ' + str(event))
+        print('event created: ' + str(event))
 
     return event, event_created, venue, venue_created
 
@@ -186,7 +195,6 @@ def _parse_bars_event(event_json):
             start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y')
 
     # get venue
-    print ('event json: ' + str(event_json.get('address')))
     address_arr = event_json.get('address').split(',')
     if len(address_arr) == 2:
         street_address, city = address_arr
@@ -207,13 +215,11 @@ def _parse_bars_event(event_json):
 
     # create event
     defaults = {'venue': venue, 'created_by': easy_scraper_user}
-    event, event_created = Event.objects.get_or_create(title=title, start_time=start_time, category= music_category, defaults=defaults)
+    event, event_created = Event.objects.get_or_create(title=title, start_time=start_time, category=music_category,
+                                                       defaults=defaults)
     if event_created:
         event.image = bars_event_default_image
         event.save()
-        print ('event created: ' + str(event))
+        print('event created: ' + str(event))
 
-    return event
-
-
-
+    return event, event_created, venue, venue_created
