@@ -110,6 +110,14 @@
       "title": "Literature & Enrichment",
       "title_heb": "ספרות והעשרה"
     }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 14,
+    "fields": {
+      "title": "Bars & Alcohol",
+      "title_heb": "בארים ואלכוהול"
+    }
   }
 ]
 

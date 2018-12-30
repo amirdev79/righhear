@@ -14,8 +14,8 @@ EASY_CATEGORIES = {'music': 5818, 'bars': 424, 'theater': 12877, 'standup': 1287
 now = datetime.datetime.now()
 tomorrow = datetime.date.today() + datetime.timedelta(days=1)
 easy_scraper_user = UserProfile.objects.get(user__username=settings.EASY_CO_IL_USERNAME)
-music_category = EventCategory.objects.get(id=1)
-bars_category = EventCategory.objects.get(id=5)
+music_category = EventCategory.objects.get(id=0)
+bars_category = EventCategory.objects.get(id=14)
 music_event_default_image = ImageFile(open("static/images/events/categories_defauls/music_default.jpg", "rb"))
 bars_event_default_image = ImageFile(open("static/images/events/categories_defauls/bars_default.jpeg", "rb"))
 
@@ -164,10 +164,11 @@ def _parse_music_event(event_json):
 
     # create event
     defaults = {'venue': venue, 'price': price, 'created_by': easy_scraper_user}
-    event, event_created = Event.objects.get_or_create(title=title, start_time=start_time, category=music_category,
+    event, event_created = Event.objects.get_or_create(title=title, start_time=start_time,
                                                        defaults=defaults)
     if event_created:
         event.image = music_event_default_image
+        event.categories.add(music_category)
         event.save()
         print('event created: ' + str(event))
 
@@ -217,9 +218,10 @@ def _parse_bars_event(event_json):
 
     # create event
     defaults = {'venue': venue, 'created_by': easy_scraper_user}
-    event, event_created = Event.objects.get_or_create(title=title, start_time=start_time, category=music_category,
+    event, event_created = Event.objects.get_or_create(title=title, start_time=start_time,
                                                        defaults=defaults)
     if event_created:
+        event.categories.add(bars_category)
         event.image = bars_event_default_image
         event.save()
         print('event created: ' + str(event))
