@@ -20,6 +20,8 @@ music_event_default_image = ImageFile(open("static/images/events/categories_defa
 bars_event_default_image = ImageFile(open("static/images/events/categories_defauls/bars_default.jpeg", "rb"))
 
 
+
+#easy
 def _parse_theater_event(event_json):
     title = event_json['bizname'][::-1]
     _date, _time = None, None

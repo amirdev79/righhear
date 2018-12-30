@@ -1,0 +1,115 @@
+[
+  {
+    "model": "events.EventCategory",
+    "pk": 0,
+    "fields": {
+      "title": "Music",
+      "title_heb": "מוזיקה"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 1,
+    "fields": {
+      "title": "Health, Lifestyle & Sports",
+      "title_heb": "בריאות וספורט"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 2,
+    "fields": {
+      "title": "Dance",
+      "title_heb": "מחול"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 3,
+    "fields": {
+      "title": "Kids",
+      "title_heb": "ילדים"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 4,
+    "fields": {
+      "title": "Movies",
+      "title_heb": "סרטים"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 5,
+    "fields": {
+      "title": "Communities",
+      "title": "אירועים קהילתיים"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 6,
+    "fields": {
+      "title": "Art, Exhibitions & Conventions",
+      "title": "אמנות, תערוכות וכנסים"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 7,
+    "fields": {
+      "title": "Tours",
+      "title_heb": "סיורים"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 8,
+    "fields": {
+      "title": "Theater",
+      "title_heb": "תאטרון"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 9,
+    "fields": {
+      "title": "Infants",
+      "title_heb": "דיגיטף"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 10,
+    "fields": {
+      "title": "Outdoors",
+      "title_heb": "אירועי חוצות"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 11,
+    "fields": {
+      "title": "Leisure & Entertainment",
+      "title_heb": "בידור ופנאי"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 12,
+    "fields": {
+      "title": "Recommended",
+      "title_heb": "מומלציםי"
+    }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 13,
+    "fields": {
+      "title": "Literature & Enrichment",
+      "title_heb": "ספרות והעשרה"
+    }
+  }
+]
+

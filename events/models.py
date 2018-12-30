@@ -8,7 +8,8 @@ class EventCategory(models.Model):
     def event_category_media_path(instance, filename):
         return 'categories/{0}_{1}.{2}'.format(instance.id, instance.title, filename[-3:])
 
-    title = models.CharField(max_length=20)
+    title = models.CharField(max_length=50)
+    title_heb = models.CharField(max_length=50, null=True)
     image = models.ImageField(upload_to=event_category_media_path)
 
     def __str__(self):
@@ -20,7 +21,7 @@ class EventSubCategory(models.Model):
         return 'subcategories/{0}_{1}.{2}'.format(instance.id, instance.title, filename[-3:])
 
     category = models.ForeignKey(EventCategory, on_delete=models.CASCADE)
-    title = models.CharField(max_length=20)
+    title = models.CharField(max_length=50)
     image = models.ImageField(upload_to=event_sub_category_media_path)
 
     def __str__(self):
@@ -86,6 +87,16 @@ class Artist(models.Model):
         return str(self.id) + ' - ' + self.first_name + ' ' + self.last_name or ''
 
 
+class Audience(models.Model):
+
+    def audiences_media_path(instance, filename):
+        return 'audiences/{0}/{1}'.format(instance.id if instance.id else 'new', filename)
+
+    title = models.CharField(db_index=True, max_length=50)
+    title_heb = models.CharField(db_index=True, max_length=50, null=True)
+    icon = models.ImageField(upload_to=audiences_media_path, blank=True, null=True)
+
+
 class Event(models.Model):
 
     def events_media_path(instance, filename):
@@ -93,7 +104,7 @@ class Event(models.Model):
 
     create_time = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
-    category = models.ForeignKey(EventCategory, on_delete=models.SET_NULL, null=True)
+    categories = models.ManyToManyField(EventCategory)
     sub_categories = models.ManyToManyField(EventSubCategory)
     title = models.CharField(db_index=True, max_length=200, blank=True)
     short_description = models.CharField(max_length=200, blank=True)
@@ -107,7 +118,9 @@ class Event(models.Model):
     media = models.ManyToManyField(Media, blank=True)
     enabled = models.BooleanField(default=True)
     image = models.ImageField(upload_to=events_media_path, blank=True)
+    audiences = models.ManyToManyField(Audience)
 
 
     def __str__(self):
         return self.title #+ ' (' + self.category.title + ')' + ' - ' + self.venue.name
+
