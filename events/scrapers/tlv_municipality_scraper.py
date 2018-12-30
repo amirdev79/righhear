@@ -74,16 +74,16 @@ def get_events():
 
 def parse_event(event_json):
 
-    print (str(event_json))
+    # print (str(event_json))
 
     title = event_json.get('Title')
-    start_time = datetime.datetime.strptime(event_json.get('TlvStartDate'), '%d.%m.%y, %H:%M')
+    start_time = datetime.datetime.strptime(event_json.get('TlvStartDate'), '%d.%m.%y, %H:%M').astimezone()
     venue_name = event_json.get('TlvCityLocation')
     venue_address = event_json.get('TlvAddress1') + ' ' + city if event_json.get('TlvAddress1') else event_json.get(
         'Location')
     description = event_json.get('TlvSummary')
     audiences = Audience.objects.filter(title_heb__in=event_json.get('TlvAudiences').split('\n\n'))
-    end_time = datetime.datetime.strptime(event_json.get('TlvEndDate'), '%d.%m.%y, %H:%M')
+    end_time = datetime.datetime.strptime(event_json.get('TlvEndDate'), '%d.%m.%y, %H:%M').astimezone()
     categories = EventCategory.objects.filter(title_heb__in=event_json.get('TlvItemCategory').split(';'))
     interests = event_json.get('TlvFieldsOfInterests')
     incharge_in_tlv_municipality = event_json.get('TlvInchargeCenter')

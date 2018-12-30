@@ -44,7 +44,7 @@
     "pk": 5,
     "fields": {
       "title": "Communities",
-      "title": "אירועים קהילתיים"
+      "title_heb": "אירועים קהילתיים"
     }
   },
   {
@@ -52,7 +52,7 @@
     "pk": 6,
     "fields": {
       "title": "Art, Exhibitions & Conventions",
-      "title": "אמנות, תערוכות וכנסים"
+      "title_heb": "אמנות, תערוכות וכנסים"
     }
   },
   {
@@ -100,7 +100,7 @@
     "pk": 12,
     "fields": {
       "title": "Recommended",
-      "title_heb": "מומלציםי"
+      "title_heb": "מומלצים"
     }
   },
   {
