@@ -1,0 +1,109 @@
+[
+  {
+    "model": "events.Audience",
+    "pk": 0,
+    "fields": {
+      "title": "Adults",
+      "title_heb": "מבוגרים"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 1,
+    "fields": {
+      "title": "Youth",
+      "title_heb": "נוער"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 2,
+    "fields": {
+      "title": "Youth 13-12",
+      "title_heb": "נוער 13-12"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 3,
+    "fields": {
+      "title": "Youth 15-14",
+      "title_heb": "נוער 15-14"
+    }
+  },
+
+  {
+    "model": "events.Audience",
+    "pk": 4,
+    "fields": {
+      "title": "Youth 18-16",
+      "title_heb": "נוער 18-16"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 5,
+    "fields": {
+      "title": "Young People",
+      "title_heb": "צעירים"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 6,
+    "fields": {
+      "title": "Seniors",
+      "title_heb": "אזרחים ותיקים"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 7,
+    "fields": {
+      "title": "Babies & Small Children",
+      "title_heb": "טף"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 8,
+    "fields": {
+      "title": "Babies birth to 6 months",
+      "title_heb": "טף לידה עד חצי שנה"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 9,
+    "fields": {
+      "title": "Babies 6-12 months",
+      "title_heb": "טף חצי שנה עד שנה"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 10,
+    "fields": {
+      "title": "Small Children 1-2 years",
+      "title_heb": "טף שנה עד שנתיים"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 11,
+    "fields": {
+      "title": "Small Children 2-3 years",
+      "title_heb": "טף שנתיים עד שלוש"
+    }
+  },
+  {
+    "model": "events.Audience",
+    "pk": 12,
+    "fields": {
+      "title": "Kids",
+      "title_heb": "ילדים"
+    }
+  }
+]
+
+
