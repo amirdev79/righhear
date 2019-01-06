@@ -9,13 +9,17 @@ from events.utils import get_gmaps_info
 from righthear import settings
 from users.models import UserProfile
 
-city = 'תל אביב יפו'
-free_label = 'לא בתשלום'
-tlv_event_default_image = ImageFile(open("static/images/events/categories_defauls/tlv_municipality.png", "rb"))
-tlv_scraper_user = UserProfile.objects.get(user__username=settings.TLV_SCRAPER_USERNAME)
+CITY = 'תל אביב יפו'
+FREE_LABEL = 'לא בתשלום'
+TLV_EVENT_DEFAULT_IMAGE = ImageFile(open("static/images/events/categories_defauls/tlv_municipality.png", "rb"))
+TLV_SCRAPER_USER = UserProfile.objects.get(user__username=settings.TLV_SCRAPER_USERNAME)
+CSV_FIELDS = [
+    'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'categories', 'sub_categories', 'audiences',
+    'short_description', 'short_description_heb', 'description', 'description_heb', 'price', 'image_url', 'venue_name',
+    'venue_street_address', 'venue_city', 'venue_phone_number', 'venue_lng', 'venue_lat', 'venue_link']
 
-events_url = 'https://www.tel-aviv.gov.il/_vti_bin/TlvSP2013PublicSite/TlvListUtils.svc/getEventsList'
-outdoors_payload = {
+EVENTS_URL = 'https://www.tel-aviv.gov.il/_vti_bin/TlvSP2013PublicSite/TlvListUtils.svc/getEventsList'
+OUTDOORS_PAYLOAD = {
     "ManagedPropertiesDS": {"Fields": None, "ItemdIds": None, "ListContentTypes": ["סוג תוכן ניהול מאפיינים"],
                             "ListId": "7f58f48c-0d59-434c-b647-5b7a213ba5ab",
                             "SiteId": "24aa409e-01ed-482e-b0ed-1956972addb1",
@@ -30,9 +34,9 @@ outdoors_payload = {
     "eventLinkTitle": "למידע נוסף", "freeEventTitle": "חינם", "displayDates": "True", "displayMap": "False",
     "displayTable": "False", "displayTiles": "True", "defaultDisplay": "Tiles", "isDigitaf": "False",
     "audiencesNotForDisplay": "", "StartDate": None, "EndDate": None}
-headers = {'content-type': 'application/json'}
+HEADERS = {'content-type': 'application/json'}
 
-tlv_categories_map = {
+TLV_CATEGORIES_MAP = {
     'outdoors': 17,
     'theater': 19,
     'dance': 21,
@@ -48,6 +52,92 @@ tlv_categories_map = {
     'community': 27,
 }
 
+DEFAULTS_FOR_SCRAPER = {'title': '',
+                        'description': '',
+                        'scraper_username': settings.TLV_SCRAPER_USERNAME,
+                        'sub_categories': '',
+                        'short_description': '',
+                        'short_description_heb': '',
+                        'price': '',
+                        'image_url': '',
+                        'venue_phone_number': '',
+                        'venue_link': '',
+                        }
+
+
+def scrape_tlv_2(to_csv=True):
+    events = get_events()
+    if to_csv:
+        _events_to_csv(events)
+    else:
+        _events_to_objects(events)
+
+
+def _events_to_csv(events):
+    with open('/tmp/events.csv', 'w+') as f:
+        lines = [','.join(CSV_FIELDS)]
+        for i, event_json in enumerate(events):
+            parsed = _parse_event(event_json)
+            parsed.update(DEFAULTS_FOR_SCRAPER)
+            lines.append(','.join(['"' + parsed.get(field, '').replace('"', '""') + '"' for field in CSV_FIELDS]))
+            print (i)
+        f.write('\n'.join(lines))
+
+
+def _to_datetime(datetime_str):
+    return datetime.datetime.strptime(datetime_str, '%d.%m.%y, %H:%M').astimezone()
+
+
+def _events_to_objects(events):
+    for event_json in events:
+        _add_event_to_db(_parse_event(event_json))
+
+
+def _add_event_to_db(event):
+    _d = lambda field: event.get(field)
+
+    venue, venue_created = Venue.objects.get_or_create(name=_d('venue_name'), city=CITY,
+                                                       street_address=_d('venue_street_address'),
+                                                       longitude=_d('venue_longitude'), latitude=_d('venue_latitude'))
+    if venue_created:
+        print('venue created: ' + str(venue.values()))
+
+    # create event
+    defaults = {'venue': venue, 'price': 0 if _d('is_free') else -1, 'created_by': TLV_SCRAPER_USER,
+                'description': _d('description'), 'end_time': _to_datetime(_d('end_time'))}
+    event, event_created = Event.objects.get_or_create(title_heb=_d('title_heb'),
+                                                       start_time=_to_datetime(_d('start_time')),
+                                                       defaults=defaults)
+    if event_created:
+        audiences = Audience.objects.filter(title_heb__in=_d('audiences').split('|'))
+        categories = EventCategory.objects.filter(title_heb__in=_d('categories').split('|'))
+        event.image = TLV_EVENT_DEFAULT_IMAGE
+        event.categories.add(*categories)
+        event.audiences.add(*audiences)
+        event.save()
+        print('event created: ' + str(event))
+
+
+def _parse_event(event_json):
+    parsed_event = {}
+    parsed_event['title_heb'] = event_json.get('Title')
+    parsed_event['start_time'] = event_json.get('TlvStartDate')
+    parsed_event['venue_name'] = event_json.get('TlvCityLocation')
+    parsed_event['description_heb'] = event_json.get('TlvSummary')
+    parsed_event['audiences'] = '|'.join(event_json.get('TlvAudiences').split('\n\n'))
+    parsed_event['end_time'] = event_json.get('TlvEndDate')
+    parsed_event['categories'] = '|'.join(event_json.get('TlvItemCategory').split(';'))
+    interests = event_json.get('TlvFieldsOfInterests')
+    incharge_in_tlv_municipality = event_json.get('TlvInchargeCenter')
+    parsed_event['is_free'] = event_json.get('`TlvPaymentRequired') == FREE_LABEL
+
+    gmaps_address = get_gmaps_info(event_json.get('TlvCityLocation'))
+    parsed_event['venue_street_address'] = gmaps_address['formatted_address'] if gmaps_address else 'Unknown'
+    parsed_event['venue_lng'] = str(gmaps_address['lng']) if gmaps_address else 'Unknown'
+    parsed_event['venue_lat'] = str(gmaps_address['lat']) if gmaps_address else 'Unknown'
+
+    return parsed_event
+
 
 def scrape_tlv():
     new_events, new_venues = [], []
@@ -59,27 +149,27 @@ def scrape_tlv():
         if venue_created:
             new_venues.append(venue.id)
 
-    print ('total events: %d\n\nnew events: %d, ids: %s\n\nnew venues: %d, ids: %s' % (len(events), len(new_events), str(new_events), len(new_venues), str(new_venues)))
+    print('total events: %d\n\nnew events: %d, ids: %s\n\nnew venues: %d, ids: %s' % (
+        len(events), len(new_events), str(new_events), len(new_venues), str(new_venues)))
 
 
 def get_events():
     json_list = []
 
-    for key in tlv_categories_map:
-        outdoors_payload['CategoryId'] = tlv_categories_map[key]
-        response = requests.post(url=events_url, json=outdoors_payload)
+    for key in TLV_CATEGORIES_MAP:
+        OUTDOORS_PAYLOAD['CategoryId'] = TLV_CATEGORIES_MAP[key]
+        response = requests.post(url=EVENTS_URL, json=OUTDOORS_PAYLOAD)
         json_list += json.loads(response.content)
     return [{field.get('InternalName'): field.get('Value') for field in e.get('Fields')} for e in json_list]
 
 
-def parse_event(event_json):
-
+def parse_event(event_json, to_csv=True):
     # print (str(event_json))
 
     title = event_json.get('Title')
     start_time = datetime.datetime.strptime(event_json.get('TlvStartDate'), '%d.%m.%y, %H:%M').astimezone()
     venue_name = event_json.get('TlvCityLocation')
-    venue_address = event_json.get('TlvAddress1') + ' ' + city if event_json.get('TlvAddress1') else event_json.get(
+    venue_address = event_json.get('TlvAddress1') + ' ' + CITY if event_json.get('TlvAddress1') else event_json.get(
         'Location')
     description = event_json.get('TlvSummary')
     audiences = Audience.objects.filter(title_heb__in=event_json.get('TlvAudiences').split('\n\n'))
@@ -87,34 +177,40 @@ def parse_event(event_json):
     categories = EventCategory.objects.filter(title_heb__in=event_json.get('TlvItemCategory').split(';'))
     interests = event_json.get('TlvFieldsOfInterests')
     incharge_in_tlv_municipality = event_json.get('TlvInchargeCenter')
-    is_free = event_json.get('`TlvPaymentRequired') == free_label
+    is_free = event_json.get('`TlvPaymentRequired') == FREE_LABEL
 
-    venue, venue_created = Venue.objects.get_or_create(name=venue_name)
-    if venue_created:
-        print('venue created: ' + venue_name + ',city: ' + city)
+    gmaps_address = get_gmaps_info(venue_name)
+    venue_street_address = gmaps_address['formatted_address'] if gmaps_address else None
+    venue_longitude, venue_latitude = gmaps_address['lng'], gmaps_address['lat'] if gmaps_address else None
 
-        venue.city = city
-        gmaps_address = get_gmaps_info(venue_name)
-        if gmaps_address:
-            venue.street_address = gmaps_address['formatted_address']
-            venue.longitude, venue.latitude = gmaps_address['lng'], gmaps_address['lat']
-        else:
-            print ('could not parse location for venue: ' + str(venue.id) + '- ' + venue.name)
-        venue.save()
+    if to_csv:
+        x = 4
+    else:
+        venue, venue_created = Venue.objects.get_or_create(name=venue_name)
+        if venue_created:
+            print('venue created: ' + venue_name + ',city: ' + CITY)
 
-    # create event
-    defaults = {'venue': venue, 'price': 0 if is_free else -1, 'created_by': tlv_scraper_user, 'description': description, 'end_time':end_time}
-    event, event_created = Event.objects.get_or_create(title=title, start_time=start_time,
-                                                       defaults=defaults)
-    if event_created:
-        event.image = tlv_event_default_image
-        event.categories.add(*categories)
-        event.audiences.add(*audiences)
-        event.save()
-        print('event created: ' + str(event))
+            venue.city = CITY
+            if gmaps_address:
+                venue.street_address = venue_street_address
+                venue.longitude, venue.latitude = venue_longitude, venue_latitude
+            else:
+                print('could not parse location for venue: ' + str(venue.id) + '- ' + venue.name)
+            venue.save()
 
-    return event, event_created, venue, venue_created
+        # create event
+        defaults = {'venue': venue, 'price': 0 if is_free else -1, 'created_by': TLV_SCRAPER_USER,
+                    'description': description, 'end_time': end_time}
+        event, event_created = Event.objects.get_or_create(title=title, start_time=start_time,
+                                                           defaults=defaults)
+        if event_created:
+            event.image = TLV_EVENT_DEFAULT_IMAGE
+            event.categories.add(*categories)
+            event.audiences.add(*audiences)
+            event.save()
+            print('event created: ' + str(event))
 
+        return event, event_created, venue, venue_created
 
 # audiences = set([a for event in events for a in event.get('TlvAudiences').split('\n\n')])
 # categories = set([c for e in events for c in e.get('TlvItemCategory').split(';')])
