@@ -28,7 +28,7 @@ def get_events(request):
                   'price': event.price,
                   'startTime': event.start_time.strftime("%b %d, %H:%M") if event.start_time else '',
                   'endTime': event.end_time.strftime("%d.%m - %H:%M") if event.end_time else '',
-                  'image': request.build_absolute_uri(event.image.url) if event.image else None,
+                  'image': request.build_absolute_uri(event.image.url) if event.image else  request.build_absolute_uri(event.artist.image.url) if event.artist and event.artist.image else None,
                   'venue': {'name': event.venue.name, 'streetAddress': event.venue.street_address,
                             'city': event.venue.city, 'lat': event.venue.latitude, 'lng': event.venue.longitude},
                   'artist': {'firstName': event.artist.first_name, 'lastName': event.artist.last_name,
