@@ -1,7 +1,10 @@
 import json
+import tempfile
+
 import requests
 import datetime
 from django.core.files.images import ImageFile
+from django.core.mail import send_mail, EmailMessage
 from django.db.models import DateTimeField, CharField
 from django.db.models.functions import TruncSecond, Cast
 
@@ -79,17 +82,37 @@ def _events_to_csv(events):
         start_time_str=Cast(TruncSecond('start_time', DateTimeField()), CharField())).values_list('title_heb',
                                                                                             'start_time_str')
 
-    with open('/tmp/events.csv', 'w+') as f:
+    csv_file = tempfile.NamedTemporaryFile(suffix='.csv')
+    with open(csv_file.name, 'w+') as f:
         lines = [','.join(CSV_FIELDS)]
         for i, event_json in enumerate(events):
             parsed = _parse_event(event_json)
             parsed.update(DEFAULTS_FOR_SCRAPER)
-            cmp_fields = tuple(parsed.get('title_heb'), parsed.get('start_time'))
-            if _to_datetime(parsed.get('date_time')) >= datetime.datetime.now() and not cmp_fields in existing_events:
+            cmp_fields = tuple([parsed.get('title_heb'), parsed.get('start_time')])
+            print (cmp_fields)
+            if _to_datetime(parsed.get('start_time')) >= datetime.datetime.now().astimezone() and not cmp_fields in existing_events:
                 lines.append(','.join(['"' + parsed.get(field, '').replace('"', '""') + '"' for field in CSV_FIELDS]))
-            # merge with existing csv file: cat *.csv | sort -u >unique.csv
             print(i)
         f.write('\n'.join(lines))
+
+    email = EmailMessage(
+        'TLV Events scraper',
+        'See attached CSV. please update the fields: title, description (non hebrew ones)',
+        'righthearil@gmail.com',
+        ['righthearil@gmail.com'],
+    )
+
+    email.attach_file(csv_file.name)
+    email.send()
+
+    # send_mail(
+    #     'Subject here',
+    #     'Here is the message.',
+    #     'righthearil@gmail.com',
+    #     ['amirgraitzer@gmail.com'],
+    #     fail_silently=False,
+    # )
+
 
 
 def _to_datetime(datetime_str):
@@ -138,10 +161,10 @@ def _parse_event(event_json):
                     'categories': '|'.join(event_json.get('TlvItemCategory').split(';')),
                     'is_free': event_json.get('`TlvPaymentRequired') == FREE_LABEL}
 
-    gmaps_address = get_gmaps_info(event_json.get('TlvCityLocation'))
+    gmaps_address = None #get_gmaps_info(event_json.get('TlvCityLocation'))
     parsed_event['venue_street_address'] = gmaps_address['formatted_address'] if gmaps_address else 'Unknown'
-    parsed_event['venue_lng'] = str(gmaps_address['lng']) if gmaps_address else 'Unknown'
-    parsed_event['venue_lat'] = str(gmaps_address['lat']) if gmaps_address else 'Unknown'
+    parsed_event['venue_lng'] = str(gmaps_address['lng']) if gmaps_address else '0'
+    parsed_event['venue_lat'] = str(gmaps_address['lat']) if gmaps_address else '0'
     interests = event_json.get('TlvFieldsOfInterests')
     incharge_in_tlv_municipality = event_json.get('TlvInchargeCenter')
 

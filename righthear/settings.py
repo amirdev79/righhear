@@ -144,5 +144,11 @@ STATIC_URL = '/static/'
 GOOGLE_API_KEY = 'AIzaSyCcESmpfQinXSNCbVVnIbAVq3MWbcs_v_o'
 
 EASY_CO_IL_USERNAME = 'easy_scraper'
-
 TLV_SCRAPER_USERNAME = 'tlv_scraper'
+
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'righthearil@gmail.com'
+EMAIL_HOST_PASSWORD = '!Z2x3c$V'
+EMAIL_PORT = 587
