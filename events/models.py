@@ -29,7 +29,7 @@ class EventSubCategory(models.Model):
 
 
 class Venue(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=50)
     street_address = models.CharField(max_length=200)
     city = models.CharField(max_length=50)
     link = models.URLField(blank=True)
@@ -44,7 +44,7 @@ class Venue(models.Model):
 class Media(models.Model):
 
     def thumbnail_media_path(instance, filename):
-        return 'artists/{0}/{1}'.format(instance.id if instance.id else 'new', filename)
+        return 'media_thumbnails/{0}/{1}'.format(instance.id if instance.id else 'new', filename)
 
 
     TYPE_IMAGE, TYPE_AUDIO, TYPE_VIDEO = "IMG", "AUD", "VID"
@@ -106,8 +106,8 @@ class Event(models.Model):
     created_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
     categories = models.ManyToManyField(EventCategory)
     sub_categories = models.ManyToManyField(EventSubCategory)
-    title = models.CharField(db_index=True, max_length=200, blank=True)
-    title_heb = models.CharField(db_index=True, max_length=200, blank=True)
+    title = models.CharField(db_index=True, max_length=50, blank=True)
+    title_heb = models.CharField(db_index=True, max_length=50, blank=True)
     short_description = models.CharField(max_length=200, blank=True)
     short_description_heb = models.CharField(max_length=200, blank=True)
     description = models.CharField(max_length=1000, blank=True)
