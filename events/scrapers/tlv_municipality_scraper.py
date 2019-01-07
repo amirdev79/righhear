@@ -1,8 +1,9 @@
 import json
 import requests
 import datetime
-
 from django.core.files.images import ImageFile
+from django.db.models import DateTimeField, CharField
+from django.db.models.functions import TruncSecond, Cast
 
 from events.models import EventCategory, Venue, Event, Audience
 from events.utils import get_gmaps_info
@@ -19,7 +20,7 @@ CSV_FIELDS = [
     'venue_street_address', 'venue_city', 'venue_phone_number', 'venue_lng', 'venue_lat', 'venue_link']
 
 EVENTS_URL = 'https://www.tel-aviv.gov.il/_vti_bin/TlvSP2013PublicSite/TlvListUtils.svc/getEventsList'
-OUTDOORS_PAYLOAD = {
+PAYLOAD = {
     "ManagedPropertiesDS": {"Fields": None, "ItemdIds": None, "ListContentTypes": ["סוג תוכן ניהול מאפיינים"],
                             "ListId": "7f58f48c-0d59-434c-b647-5b7a213ba5ab",
                             "SiteId": "24aa409e-01ed-482e-b0ed-1956972addb1",
@@ -65,7 +66,7 @@ DEFAULTS_FOR_SCRAPER = {'title': '',
                         }
 
 
-def scrape_tlv_2(to_csv=True):
+def scrape_tlv(to_csv=True):
     events = get_events()
     if to_csv:
         _events_to_csv(events)
@@ -74,13 +75,20 @@ def scrape_tlv_2(to_csv=True):
 
 
 def _events_to_csv(events):
+    existing_events = Event.objects.filter(start_time__gte=datetime.datetime.now()).annotate(
+        start_time_str=Cast(TruncSecond('start_time', DateTimeField()), CharField())).values_list('title_heb',
+                                                                                            'start_time_str')
+
     with open('/tmp/events.csv', 'w+') as f:
         lines = [','.join(CSV_FIELDS)]
         for i, event_json in enumerate(events):
             parsed = _parse_event(event_json)
             parsed.update(DEFAULTS_FOR_SCRAPER)
-            lines.append(','.join(['"' + parsed.get(field, '').replace('"', '""') + '"' for field in CSV_FIELDS]))
-            print (i)
+            cmp_fields = tuple(parsed.get('title_heb'), parsed.get('start_time'))
+            if _to_datetime(parsed.get('date_time')) >= datetime.datetime.now() and not cmp_fields in existing_events:
+                lines.append(','.join(['"' + parsed.get(field, '').replace('"', '""') + '"' for field in CSV_FIELDS]))
+            # merge with existing csv file: cat *.csv | sort -u >unique.csv
+            print(i)
         f.write('\n'.join(lines))
 
 
@@ -93,18 +101,22 @@ def _events_to_objects(events):
         _add_event_to_db(_parse_event(event_json))
 
 
-def _add_event_to_db(event):
-    _d = lambda field: event.get(field)
+def _add_event_to_db(event_dic):
+    _d = lambda field: event_dic.get(field)
 
     venue, venue_created = Venue.objects.get_or_create(name=_d('venue_name'), city=CITY,
                                                        street_address=_d('venue_street_address'),
-                                                       longitude=_d('venue_longitude'), latitude=_d('venue_latitude'))
+                                                       longitude=_d('venue_lng'), latitude=_d('venue_lat'))
     if venue_created:
-        print('venue created: ' + str(venue.values()))
+        print('venue created: %d: %s' % (venue.id, venue.name))
 
     # create event
     defaults = {'venue': venue, 'price': 0 if _d('is_free') else -1, 'created_by': TLV_SCRAPER_USER,
-                'description': _d('description'), 'end_time': _to_datetime(_d('end_time'))}
+                'description': _d('description'), 'description_heb': _d('description_heb'),
+                'short_description': _d('short_description') or '',
+                'short_description_heb': _d('short_description_heb') or '',
+                'end_time': _to_datetime(_d('end_time'))}
+    print(str(event_dic))
     event, event_created = Event.objects.get_or_create(title_heb=_d('title_heb'),
                                                        start_time=_to_datetime(_d('start_time')),
                                                        defaults=defaults)
@@ -119,27 +131,24 @@ def _add_event_to_db(event):
 
 
 def _parse_event(event_json):
-    parsed_event = {}
-    parsed_event['title_heb'] = event_json.get('Title')
-    parsed_event['start_time'] = event_json.get('TlvStartDate')
-    parsed_event['venue_name'] = event_json.get('TlvCityLocation')
-    parsed_event['description_heb'] = event_json.get('TlvSummary')
-    parsed_event['audiences'] = '|'.join(event_json.get('TlvAudiences').split('\n\n'))
-    parsed_event['end_time'] = event_json.get('TlvEndDate')
-    parsed_event['categories'] = '|'.join(event_json.get('TlvItemCategory').split(';'))
-    interests = event_json.get('TlvFieldsOfInterests')
-    incharge_in_tlv_municipality = event_json.get('TlvInchargeCenter')
-    parsed_event['is_free'] = event_json.get('`TlvPaymentRequired') == FREE_LABEL
+    parsed_event = {'title_heb': event_json.get('Title'), 'start_time': event_json.get('TlvStartDate'),
+                    'venue_name': event_json.get('TlvCityLocation'), 'description_heb': event_json.get('TlvSummary'),
+                    'audiences': '|'.join(event_json.get('TlvAudiences').split('\n\n')),
+                    'end_time': event_json.get('TlvEndDate'),
+                    'categories': '|'.join(event_json.get('TlvItemCategory').split(';')),
+                    'is_free': event_json.get('`TlvPaymentRequired') == FREE_LABEL}
 
     gmaps_address = get_gmaps_info(event_json.get('TlvCityLocation'))
     parsed_event['venue_street_address'] = gmaps_address['formatted_address'] if gmaps_address else 'Unknown'
     parsed_event['venue_lng'] = str(gmaps_address['lng']) if gmaps_address else 'Unknown'
     parsed_event['venue_lat'] = str(gmaps_address['lat']) if gmaps_address else 'Unknown'
+    interests = event_json.get('TlvFieldsOfInterests')
+    incharge_in_tlv_municipality = event_json.get('TlvInchargeCenter')
 
     return parsed_event
 
 
-def scrape_tlv():
+def scrape_tlv2():
     new_events, new_venues = [], []
     events = get_events()
     for event_json in events:
@@ -157,8 +166,8 @@ def get_events():
     json_list = []
 
     for key in TLV_CATEGORIES_MAP:
-        OUTDOORS_PAYLOAD['CategoryId'] = TLV_CATEGORIES_MAP[key]
-        response = requests.post(url=EVENTS_URL, json=OUTDOORS_PAYLOAD)
+        PAYLOAD['CategoryId'] = TLV_CATEGORIES_MAP[key]
+        response = requests.post(url=EVENTS_URL, json=PAYLOAD)
         json_list += json.loads(response.content)
     return [{field.get('InternalName'): field.get('Value') for field in e.get('Fields')} for e in json_list]
 
