@@ -22,6 +22,7 @@ class EventSubCategory(models.Model):
 
     category = models.ForeignKey(EventCategory, on_delete=models.CASCADE)
     title = models.CharField(max_length=50)
+    title_heb = models.CharField(max_length=50, null=True)
     image = models.ImageField(upload_to=event_sub_category_media_path)
 
     def __str__(self):
@@ -30,8 +31,11 @@ class EventSubCategory(models.Model):
 
 class Venue(models.Model):
     name = models.CharField(max_length=50)
+    name_heb = models.CharField(max_length=50, null=True)
     street_address = models.CharField(max_length=200)
+    street_address_heb = models.CharField(max_length=200, null=True)
     city = models.CharField(max_length=50)
+    city_heb = models.CharField(max_length=50, null=True)
     link = models.URLField(blank=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)

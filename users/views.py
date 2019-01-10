@@ -42,10 +42,13 @@ def add_swipe_action(request):
 @csrf_exempt
 @login_required
 def update_user_profile(request):
-    categories_ids, = parse_request(request, lists=['categoriesIds'])
+    lang_code, categories_ids = parse_request(request, ['langCode'], lists=['categoriesIds'])
     up = UserProfile.objects.get(user=request.user)
-    up.preferred_categories.clear()
-    up.preferred_categories.add(*categories_ids)
+    if categories_ids:
+        up.preferred_categories.clear()
+        up.preferred_categories.add(*categories_ids)
+    if lang_code:
+        up.preferred_language
     up_json = up_to_json(up, request)
     return JsonResponse(up_json)
 
