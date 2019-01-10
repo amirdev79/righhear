@@ -111,7 +111,7 @@ def _events_to_csv(events):
 
     email = EmailMessage(
         'TLV Events scraper',
-        'See attached CSV. please update the fields: title, description (non hebrew ones)',
+        'See attached CSV. please update the fields: title, description, short description (non hebrew ones)\nDo not touch the venue fields!',
         'righthearil@gmail.com',
         ['righthearil@gmail.com'],
     )
