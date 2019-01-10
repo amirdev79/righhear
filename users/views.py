@@ -48,7 +48,8 @@ def update_user_profile(request):
         up.preferred_categories.clear()
         up.preferred_categories.add(*categories_ids)
     if lang_code:
-        up.preferred_language
+        up.preferred_language = lang_code
+        up.save()
     up_json = up_to_json(up, request)
     return JsonResponse(up_json)
 

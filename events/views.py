@@ -3,6 +3,7 @@ from django.http import HttpResponse, JsonResponse
 
 from events.models import Event
 from events.utils import get_event_image
+import locale
 
 
 def index(request):
@@ -12,6 +13,7 @@ def index(request):
 def get_events(request):
 
     up = request.user.userprofile
+    locale.setlocale(locale.LC_TIME, "he_IL.UTF-8" if up.preferred_language == "he" else "en_US.UTF-8")
 
     _by_lang = lambda obj, field : (obj.__getattribute__(field + '_heb' if up.preferred_language == 'he' else field)) or ''
 
@@ -42,5 +44,5 @@ def get_events(request):
                   'media': [{'type': m.type, 'link': m.link, 'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in event.media.all()],
                   'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,
 
-              } for event in events]
+              } for event in events[:50]]
     return JsonResponse(events, safe=False)
