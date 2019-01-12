@@ -32,59 +32,20 @@ DEFAULTS_FOR_SCRAPER = {'title': '',
                         'description': '',
                         'description_heb': '',
                         'image_url': '',
+                        'venue_name': '',
+                        'venue_street_address_heb': '',
+                        'venue_city': '',
                         'venue_link': '',
                         'end_time': '',
                         'categories': '',
                         'audiences': ''
                         }
 
-CSV_FIELDS = [
+CSV_EVENTS_FIELDS = [
     'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'categories', 'sub_categories', 'audiences',
     'short_description', 'short_description_heb', 'description', 'description_heb', 'price', 'image_url', 'venue_name',
-    'venue_street_address', 'venue_city', 'venue_phone_number', 'venue_lng', 'venue_lat', 'venue_link']
-
-
-# easy
-def _parse_theater_event(event_json):
-    title = event_json['bizname'][::-1]
-    _date, _time = None, None
-    _datetime = event_json['openhours'].replace(' ב-', '|')
-    _datetime_arr = _datetime.split('|')
-    if len(_datetime_arr) == 2:
-        if _datetime_arr[0] == 'היום':
-            _datetime = '%s/%s/%s' % (now.day, now.month, now.year) + '|' + _datetime_arr[1]
-        elif _datetime_arr[0] == 'מחר':
-            _datetime = '%s/%s/%s' % (tomorrow.day, tomorrow.month, tomorrow.year) + '|' + _datetime_arr[1]
-        elif _datetime_arr[0].count('/') == 1:
-            _datetime = _datetime_arr[0] + '/' + str(now.year) + '|' + _datetime_arr[1]
-
-        start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y|%H:%M').astimezone()
-    else:
-        if _datetime.count('/') == 1:
-            _datetime += '/' + str(now.year)
-        start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y').astimezone()
-
-    return {'title': title, 'start_time': start_time}
-
-
-def _parse_standup_event(event_json):
-    title = event_json['bizname'][::-1]
-    _date, _time = None, None
-    _datetime = event_json['openhours'].replace(' ב-', '|')
-    _datetime_arr = _datetime.split('|')
-    if len(_datetime_arr) == 2:
-        if _datetime_arr[0] == 'היום':
-            _datetime = '%s/%s/%s' % (now.day, now.month, now.year) + '|' + _datetime_arr[1]
-        elif _datetime_arr[0] == 'מחר':
-            _datetime = '%s/%s/%s' % (tomorrow.day, tomorrow.month, tomorrow.year) + '|' + _datetime_arr[1]
-        elif _datetime_arr[0].count('/') == 1:
-            _datetime = _datetime_arr[0] + '/' + str(now.year) + '|' + _datetime_arr[1]
-
-        start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y|%H:%M')
-    else:
-        start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y')
-
-    return {'title': title, 'start_time': start_time}
+    'venue_name_heb', 'venue_street_address', 'venue_street_addresss_heb', 'venue_city', 'venue_city_heb', 'venue_phone_number',
+    'venue_longitude', 'venue_latitude', 'venue_link']
 
 
 def _to_datetime(datetime_str):
@@ -97,79 +58,42 @@ def events_to_csv():
     existing_events_cmp_fields = Event.objects.filter(start_time__gte=datetime.datetime.now()).annotate(
         start_time_str=Cast(TruncSecond('start_time', DateTimeField()), CharField())).values_list('title_heb',
                                                                                                   'start_time_str')
-    csv_file = tempfile.NamedTemporaryFile(suffix='.csv')
-    with open(csv_file.name, 'w+') as f:
 
-        lines = [','.join(CSV_FIELDS)]
-        for i, event_json in enumerate(events):
-            print('doing event ' + str(i))
-            parsed = _parse_event(event_json)
-            parsed.update(DEFAULTS_FOR_SCRAPER)
+    new_events = [','.join(CSV_EVENTS_FIELDS)]
+    for i, event_json in enumerate(events):
+        print('doing event ' + str(i))
+        parsed = _parse_event(event_json)
+        parsed.update(DEFAULTS_FOR_SCRAPER)
 
-            event_start_datetime = _to_datetime(parsed.get('start_time'))
-            db_format_datetime = event_start_datetime.strftime('%Y-%m-%d %H:%M:%S')
-            event_cmp_fields = parsed.get('title_heb'), db_format_datetime
-            if event_cmp_fields in existing_events_cmp_fields:
-                print('event %s - %s is already in DB. excluding from csv...' % (
-                    event_cmp_fields[0], event_cmp_fields[1]))
-            elif event_start_datetime < datetime.datetime.now().astimezone():
-                print('event %s - %s-%s time has passed. excluding from csv...' % (
-                    event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
-            else:
-                lines.append(','.join(['"' + parsed.get(field, '').replace('"', '""') + '"' for field in CSV_FIELDS]))
-        f.write('\n'.join(lines))
+        event_start_datetime = _to_datetime(parsed.get('start_time'))
+        db_format_datetime = event_start_datetime.strftime('%Y-%m-%d %H:%M:%S')
+        event_cmp_fields = parsed.get('title_heb'), db_format_datetime
+        if event_cmp_fields in existing_events_cmp_fields:
+            print('event %s - %s is already in DB. excluding from csv...' % (
+                event_cmp_fields[0], event_cmp_fields[1]))
+        elif event_start_datetime < datetime.datetime.now().astimezone():
+            print('event %s - %s-%s time has passed. excluding from csv...' % (
+                event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
+        else:
+            new_events.append(
+                ','.join(['"' + parsed.get(field, '').replace('"', '""') + '"' for field in CSV_EVENTS_FIELDS]))
 
-        print('csv created. sending by email...')
+    events_csv_file = tempfile.NamedTemporaryFile(suffix='.csv')
 
-        email = EmailMessage(
-            'Easy.co.il Events scraper',
-            'See attached CSV. please update the fields: title, description, short description (non hebrew ones)\nDo not touch the venue fields!',
-            'righthearil@gmail.com',
-            ['righthearil@gmail.com'],
-        )
+    email = EmailMessage(
+        'Easy.co.il Events scraper',
+        'See attached CSV. please update the fields: title, description, short description (non hebrew ones)\nDo not touch the venue fields!',
+        'righthearil@gmail.com',
+        ['righthearil@gmail.com'],
+    )
 
-        email.attach_file(csv_file.name)
-        email.send()
+    with open(events_csv_file.name, 'w+') as f:
+        f.write('\n'.join(new_events))
+        email.attach_file(events_csv_file.name)
 
+    print('sending csv file...')
 
-# def scrape_easy(category):
-#     events_list = get_events(category)
-#
-#     new_music_events, new_music_venues, new_bars_events, new_bars_venues = [], [], [], []
-#     total_music_events, total_bars_events = 0, 0
-#     if category == 'music':
-#         for event in events_list:
-#             total_music_events += 1
-#             event, event_created, venue, venue_created = _parse_music_event(event)
-#             if event_created:
-#                 new_music_events.append(event)
-#             if venue_created:
-#                 new_music_venues.append(venue)
-#         print('%d new music events added of total %d\n-------------------------------------------- %s' % (
-#             len(new_music_events), total_music_events, '\n'.join([str(e) for e in new_music_events])))
-#         print('%d new music venues added of total %d:\n------------------------------------------- %s' % (
-#             len(new_music_venues), total_music_events, '\n'.join([str(v) for v in new_music_venues])))
-#
-#     elif category == 'bars':
-#         for event in events_list:
-#             total_bars_events += 1
-#             event, event_created, venue, venue_created = _parse_bars_event(event)
-#             if event_created:
-#                 new_bars_events.append(event)
-#             if venue_created:
-#                 new_bars_venues.append(venue)
-#
-#         print('%d new bars events added of total %d\n-------------------------------------------- %s' % (
-#             len(new_bars_events), total_bars_events, '\n'.join([str(e) for e in new_bars_events])))
-#         print('%d new bars venues added of total %d:\n------------------------------------------- %s' % (
-#             len(new_bars_venues), total_bars_events, '\n'.join([str(v) for v in new_bars_venues])))
-#
-#     elif category == 'theater':
-#         events = [_parse_theater_event(event) for event in events_list]
-#     elif category == 'standup':
-#         events = [_parse_standup_event(event) for event in events_list]
-#     else:
-#         events = []
+    email.send()
 
 
 def get_events(category):
@@ -204,6 +128,9 @@ def _get_start_time(event_json):
             _datetime = _datetime_arr[0] + '/' + str(now.year) + '|' + _datetime_arr[1]
 
         start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y|%H:%M').astimezone()
+    elif _datetime == 'מחר':
+        _datetime = '%s/%s/%s' % (tomorrow.day, tomorrow.month, tomorrow.year)
+        start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y').astimezone()
     elif _datetime.count('/') == 1:
         start_time = datetime.datetime.strptime(_datetime + '/' + str(now.year), '%d/%m/%Y').astimezone()
     else:
@@ -221,18 +148,18 @@ def _get_price(event_json):
 
 
 def _parse_event(event_json):
-    event = {'title_heb': event_json['bizname'], 'start_time': _get_start_time(event_json)}
+    event = {'title_heb': event_json['bizname'], 'start_time': _get_start_time(event_json),
+             'venue_longitude': event_json['lng'], 'venue_latitude': event_json['lat'],
+             'venue_phone_number': event_json.get('phone')}
     venue_name, city = event_json.get('address').split(',')
-    event['venue_name'] = venue_name
-    event['venue_city'] = city
+    event['venue_name_heb'] = venue_name
+    event['venue_city_heb'] = city
     gmaps_address = get_gmaps_info(venue_name)
     event['venue_street_address'] = gmaps_address['formatted_address'] if gmaps_address else None
-    event['venue_lng'] = str(gmaps_address['lng']) if gmaps_address else '0'
-    event['venue_lat'] = str(gmaps_address['lat']) if gmaps_address else '0'
-    event['venue_phone_number'] = event_json.get('phone')
+    # event['venue_longitude'] = str(gmaps_address['lng']) if gmaps_address else '0'
+    # event['venue_latitude'] = str(gmaps_address['lat']) if gmaps_address else '0'
     event['price'] = _get_price(event_json)
     return event
-
 
 # def _parse_music_event(event_json):
 #     # get title
