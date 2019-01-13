@@ -118,6 +118,14 @@
       "title": "Bars & Alcohol",
       "title_heb": "בארים ואלכוהול"
     }
+  },
+  {
+    "model": "events.EventCategory",
+    "pk": 15,
+    "fields": {
+      "title": "Standup & Nonsense",
+      "title_heb": "סטנדאפ ונונסנס"
+    }
   }
 ]
 
