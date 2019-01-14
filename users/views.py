@@ -54,4 +54,11 @@ def update_user_profile(request):
     return JsonResponse(up_json)
 
 
+def landing_page(request):
+    return HttpResponse("App landing page")
 
+
+@csrf_exempt
+@login_required
+def invite(request):
+    return JsonResponse({'status': 'OK'})
