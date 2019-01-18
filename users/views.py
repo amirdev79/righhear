@@ -55,7 +55,7 @@ def update_user_profile(request):
 
 
 def landing_page(request):
-    return HttpResponse("App landing page")
+    return HttpResponse("Right Hear is a mobile app. Please open the link on your mobile")
 
 
 @csrf_exempt
