@@ -1,7 +1,8 @@
+import facebook
 from django.utils import timezone
 from django.db.utils import IntegrityError
 
-from users.models import UserDevice
+from users.models import UserDevice, UserData, FacebookEvent
 
 
 def up_to_json(up, request):
@@ -34,3 +35,25 @@ def update_device_info(up, device_info):
         ud, created = UserDevice.objects.update_or_create(device_id=_di('deviceId'), defaults=ud_defatuls)
     except IntegrityError:
         pass
+
+
+def _update_user_fb_events(up, events):
+    ud, ud_created = UserData.objects.get_or_create(user=up)
+    ud_fb_events = []
+    for event in events:
+        defaults = {'name': event['name'], 'description': event['description'], 'start_time': event['start_time'], 'end_time': event['end_time'], 'place': event['place']}
+        fe, created = FacebookEvent.objects.get_or_create(fb_id=event['id'], defaults=defaults)
+        ud_fb_events.append(fe)
+    ud.fb_events.add(*ud_fb_events)
+
+
+def _update_user_fb_friends(up, friends):
+    pass
+
+
+def update_user_fb_data(up):
+    graph = facebook.GraphAPI(access_token=up.fb_access_token)
+    events = graph.get_connections(id='me', connection_name='events')
+    friends = graph.get_connections(id='me', connection_name='friends')
+    _update_user_fb_events(up, events['data'])
+    _update_user_fb_friends(up, friends['data'])
