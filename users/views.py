@@ -19,14 +19,14 @@ def sign_in(request):
     user, created = User.objects.get_or_create(username=username)
     up, up_created = UserProfile.objects.get_or_create(user=user)
     if up_created:
-        print ('user created: username - ' + up.user.username)
+        print('user created: username - ' + up.user.username)
     else:
-        print ('user signed in: username - ' + up.user.username)
+        print('user signed in: username - ' + up.user.username)
     user = authenticate(username=username)
     login(request, user)
     up.preferred_categories.clear()
     up.preferred_categories.add(*categories_ids)
-    update_device_info(up ,device_info)
+    update_device_info(up, device_info)
     up_json = up_to_json(up, request)
     return JsonResponse(up_json)
 
@@ -35,7 +35,8 @@ def sign_in(request):
 @login_required
 def add_swipe_action(request):
     event_id, action = parse_request(request, ['eventId', 'action'])
-    UserSwipeAction.objects.create(user=request.user.userprofile, event_id=event_id, action=action, action_time=timezone.now())
+    UserSwipeAction.objects.create(user=request.user.userprofile, event_id=event_id, action=action,
+                                   action_time=timezone.now())
     return HttpResponse()
 
 
@@ -76,8 +77,7 @@ def sign_in_with_facebook(request):
     up_json = up_to_json(up, request)
     return JsonResponse(up_json)
 
-
-#EAAEiQAK1MRkBADqY2omBDG0fRQZBJ4f0qAWKXuXfL6ZAacxbEbUd4OBT5Br9MiCsyJQQes5ETdczttOd6G59owxozian0FO8UdeQaytgbeW7ZAW8PjZAkc2dkrs1y4R5QNLGXoSynt7AkzW5Ts5wuxhSfGswYi4w9CjZCoyFOVEkvl67qWU0kvVO5MWQXBmkZAR7t2zYO4mwZDZD
-#10155722070191599
-#319133295391001
-#f2bb7b988aaca92f - device id
+# EAAEiQAK1MRkBADqY2omBDG0fRQZBJ4f0qAWKXuXfL6ZAacxbEbUd4OBT5Br9MiCsyJQQes5ETdczttOd6G59owxozian0FO8UdeQaytgbeW7ZAW8PjZAkc2dkrs1y4R5QNLGXoSynt7AkzW5Ts5wuxhSfGswYi4w9CjZCoyFOVEkvl67qWU0kvVO5MWQXBmkZAR7t2zYO4mwZDZD
+# 10155722070191599
+# 319133295391001
+# f2bb7b988aaca92f - device id
