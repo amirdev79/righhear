@@ -1,5 +1,5 @@
 from django.contrib import admin
-from users.models import UserProfile, UserDevice, UserSwipeAction
+from users.models import UserProfile, UserDevice, UserSwipeAction, UserData
 
 
 class UserDeviceAdmin(admin.ModelAdmin):
@@ -9,7 +9,14 @@ class UserDeviceAdmin(admin.ModelAdmin):
 class UserSwipeActionAdmin(admin.ModelAdmin):
     list_display = ('user', 'event', 'action')
 
-admin.site.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'preferred_language', 'fb_id')
+
+class UserDataAdmin(admin.ModelAdmin):
+    list_display = ('userprofile', 'fb_profile_image_small', 'fb_profile_image_normal', 'fb_profile_image_large')
+
+admin.site.register(UserProfile, UserProfileAdmin)
+admin.site.register(UserData, UserDataAdmin)
 admin.site.register(UserDevice, UserDeviceAdmin)
 admin.site.register(UserSwipeAction, UserSwipeActionAdmin)
 
