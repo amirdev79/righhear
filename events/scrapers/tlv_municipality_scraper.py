@@ -1,7 +1,10 @@
 import json
+import tempfile
+
 import requests
 import datetime
 from django.core.files.images import ImageFile
+from django.core.mail import send_mail, EmailMessage
 from django.db.models import DateTimeField, CharField
 from django.db.models.functions import TruncSecond, Cast
 
@@ -75,21 +78,46 @@ def scrape_tlv(to_csv=True):
 
 
 def _events_to_csv(events):
-    existing_events = Event.objects.filter(start_time__gte=datetime.datetime.now()).annotate(
+    existing_events_cmp_fields = Event.objects.filter(start_time__gte=datetime.datetime.now()).annotate(
         start_time_str=Cast(TruncSecond('start_time', DateTimeField()), CharField())).values_list('title_heb',
-                                                                                            'start_time_str')
+                                                                                                  'start_time_str')
 
-    with open('/tmp/events.csv', 'w+') as f:
+    csv_file = tempfile.NamedTemporaryFile(suffix='.csv')
+    with open(csv_file.name, 'w+') as f:
         lines = [','.join(CSV_FIELDS)]
         for i, event_json in enumerate(events):
+            print('doing event ' + str(i))
             parsed = _parse_event(event_json)
             parsed.update(DEFAULTS_FOR_SCRAPER)
-            cmp_fields = tuple(parsed.get('title_heb'), parsed.get('start_time'))
-            if _to_datetime(parsed.get('date_time')) >= datetime.datetime.now() and not cmp_fields in existing_events:
+            event_start_datetime = _to_datetime(parsed.get('start_time'))
+            event_end_datetime = _to_datetime(parsed.get('end_time'))
+
+            # convert scraper format - 19.02.19, 10:30, to db format - 2019-02-19 10:30:00
+            db_format_datetime = event_start_datetime.strftime('%Y-%m-%d %H:%M:%S')
+
+            # test if event exists in  db by looking up events with same title & start time
+            event_cmp_fields = parsed.get('title_heb'), db_format_datetime
+            if event_cmp_fields in existing_events_cmp_fields:
+                print('event %s - %s is already in DB. excluding from csv...' % (
+                    event_cmp_fields[0], event_cmp_fields[1]))
+            elif event_end_datetime < datetime.datetime.now().astimezone():
+                print('event %s - %s-%s time has passed. excluding from csv...' % (
+                    event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
+            else:
                 lines.append(','.join(['"' + parsed.get(field, '').replace('"', '""') + '"' for field in CSV_FIELDS]))
-            # merge with existing csv file: cat *.csv | sort -u >unique.csv
-            print(i)
         f.write('\n'.join(lines))
+
+    print('csv created. sending by email...')
+
+    email = EmailMessage(
+        'TLV Events scraper',
+        'See attached CSV. please update the fields: title, description, short description (non hebrew ones)\nDo not touch the venue fields!',
+        'righthearil@gmail.com',
+        ['righthearil@gmail.com'],
+    )
+
+    email.attach_file(csv_file.name)
+    email.send()
 
 
 def _to_datetime(datetime_str):
@@ -140,26 +168,12 @@ def _parse_event(event_json):
 
     gmaps_address = get_gmaps_info(event_json.get('TlvCityLocation'))
     parsed_event['venue_street_address'] = gmaps_address['formatted_address'] if gmaps_address else 'Unknown'
-    parsed_event['venue_lng'] = str(gmaps_address['lng']) if gmaps_address else 'Unknown'
-    parsed_event['venue_lat'] = str(gmaps_address['lat']) if gmaps_address else 'Unknown'
+    parsed_event['venue_lng'] = str(gmaps_address['lng']) if gmaps_address else '0'
+    parsed_event['venue_lat'] = str(gmaps_address['lat']) if gmaps_address else '0'
     interests = event_json.get('TlvFieldsOfInterests')
     incharge_in_tlv_municipality = event_json.get('TlvInchargeCenter')
 
     return parsed_event
-
-
-def scrape_tlv2():
-    new_events, new_venues = [], []
-    events = get_events()
-    for event_json in events:
-        event, event_created, venue, venue_created = parse_event(event_json)
-        if event_created:
-            new_events.append(event.id)
-        if venue_created:
-            new_venues.append(venue.id)
-
-    print('total events: %d\n\nnew events: %d, ids: %s\n\nnew venues: %d, ids: %s' % (
-        len(events), len(new_events), str(new_events), len(new_venues), str(new_venues)))
 
 
 def get_events():
@@ -170,56 +184,6 @@ def get_events():
         response = requests.post(url=EVENTS_URL, json=PAYLOAD)
         json_list += json.loads(response.content)
     return [{field.get('InternalName'): field.get('Value') for field in e.get('Fields')} for e in json_list]
-
-
-def parse_event(event_json, to_csv=True):
-    # print (str(event_json))
-
-    title = event_json.get('Title')
-    start_time = datetime.datetime.strptime(event_json.get('TlvStartDate'), '%d.%m.%y, %H:%M').astimezone()
-    venue_name = event_json.get('TlvCityLocation')
-    venue_address = event_json.get('TlvAddress1') + ' ' + CITY if event_json.get('TlvAddress1') else event_json.get(
-        'Location')
-    description = event_json.get('TlvSummary')
-    audiences = Audience.objects.filter(title_heb__in=event_json.get('TlvAudiences').split('\n\n'))
-    end_time = datetime.datetime.strptime(event_json.get('TlvEndDate'), '%d.%m.%y, %H:%M').astimezone()
-    categories = EventCategory.objects.filter(title_heb__in=event_json.get('TlvItemCategory').split(';'))
-    interests = event_json.get('TlvFieldsOfInterests')
-    incharge_in_tlv_municipality = event_json.get('TlvInchargeCenter')
-    is_free = event_json.get('`TlvPaymentRequired') == FREE_LABEL
-
-    gmaps_address = get_gmaps_info(venue_name)
-    venue_street_address = gmaps_address['formatted_address'] if gmaps_address else None
-    venue_longitude, venue_latitude = gmaps_address['lng'], gmaps_address['lat'] if gmaps_address else None
-
-    if to_csv:
-        x = 4
-    else:
-        venue, venue_created = Venue.objects.get_or_create(name=venue_name)
-        if venue_created:
-            print('venue created: ' + venue_name + ',city: ' + CITY)
-
-            venue.city = CITY
-            if gmaps_address:
-                venue.street_address = venue_street_address
-                venue.longitude, venue.latitude = venue_longitude, venue_latitude
-            else:
-                print('could not parse location for venue: ' + str(venue.id) + '- ' + venue.name)
-            venue.save()
-
-        # create event
-        defaults = {'venue': venue, 'price': 0 if is_free else -1, 'created_by': TLV_SCRAPER_USER,
-                    'description': description, 'end_time': end_time}
-        event, event_created = Event.objects.get_or_create(title=title, start_time=start_time,
-                                                           defaults=defaults)
-        if event_created:
-            event.image = TLV_EVENT_DEFAULT_IMAGE
-            event.categories.add(*categories)
-            event.audiences.add(*audiences)
-            event.save()
-            print('event created: ' + str(event))
-
-        return event, event_created, venue, venue_created
 
 # audiences = set([a for event in events for a in event.get('TlvAudiences').split('\n\n')])
 # categories = set([c for e in events for c in e.get('TlvItemCategory').split(';')])
