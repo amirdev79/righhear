@@ -7,6 +7,8 @@ from events.models import Event, EventCategory
 from events.utils import get_event_image
 import locale
 
+from utils.network import parse_request
+
 
 def index(request):
     return HttpResponse("Welcome right Hear :)")
@@ -20,6 +22,8 @@ def get_events(request):
 
     _by_lang = lambda obj, field: (obj.__getattribute__(
         field + '_heb' if up.preferred_language == 'he' else field)) or ''
+
+    categories_ids, = parse_request(request, lists=['categoriesIds'])
 
     valid = Q(title__isnull=False, enabled=True)  # , start_time__gte=timezone.now())
     events = Event.objects.filter(valid)
