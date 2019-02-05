@@ -1,26 +1,24 @@
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 from events.models import Event
 from events.utils import get_event_image
 import locale
+
+from users.models import UserSwipeAction
 
 
 def index(request):
     return HttpResponse("Welcome right Hear :)")
 
 
-def get_events(request):
-
-    up = request.user.userprofile
-    locale.setlocale(locale.LC_TIME, "he_IL.UTF-8" if up.preferred_language == "he" else "en_US.UTF-8")
+def _events_to_json(request, events, up):
 
     _by_lang = lambda obj, field : (obj.__getattribute__(field + '_heb' if up.preferred_language == 'he' else field)) or ''
 
-    valid = Q(title__isnull=False, enabled=True)#, start_time__gte=timezone.now())
-    events = Event.objects.filter(valid)
-
-    events = [{
+    return [{
                   'id': event.id,
                   'title': _by_lang(event, 'title'),
                   'createdBy': {'firstName': event.created_by.user.first_name,
@@ -44,5 +42,31 @@ def get_events(request):
                   'media': [{'type': m.type, 'link': m.link, 'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in event.media.all()],
                   'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,
 
-              } for event in events[:50]]
-    return JsonResponse(events, safe=False)
+              } for event in events]
+
+
+def get_events(request):
+
+    valid = Q(title__isnull=False, enabled=True)#, start_time__gte=timezone.now())
+    events = Event.objects.filter(valid)
+
+    events_json = _events_to_json(request, events[:50], request.user.userprofile)
+    return JsonResponse(events_json, safe=False)
+
+
+@csrf_exempt
+@login_required
+def get_user_selected_events(request):
+
+    up = request.user.userprofile
+
+    swipe_right_actions = UserSwipeAction.objects.filter(user=request.user.userprofile, action=UserSwipeAction.ACTION_RIGHT)
+    selected_events_ids = swipe_right_actions.values_list('event', flat=True)
+    selected_events = Event.objects.filter(id__in=selected_events_ids)
+    events_json = _events_to_json(request, selected_events, up)
+
+    return JsonResponse(events_json, safe=False)
+
+
+
+    

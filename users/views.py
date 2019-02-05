@@ -54,10 +54,7 @@ def update_user_profile(request):
     up_json = up_to_json(up, request)
     return JsonResponse(up_json)
 
-@csrf_exempt
-@login_required
-def get_selected_events(request):
-    swipes = UserSwipeAction.objects.filter(user=request.user.userprofile, action=UserSwipeAction.ACTION_RIGHT)
+
 
 def landing_page(request):
     return HttpResponse("Right Hear is a mobile app. Please open the link on your mobile")
