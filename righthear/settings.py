@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'users',
     'events',
     'utils',
+    'adminsortable',
 ]
 
 MIDDLEWARE = [

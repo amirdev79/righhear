@@ -1,16 +1,26 @@
+from adminsortable.models import SortableMixin
 from django.db import models
 from django.contrib.postgres.fields import JSONField
 
 from users.models import UserProfile
 
 
-class EventCategory(models.Model):
+class EventCategory(SortableMixin):
+
+    class Meta:
+        verbose_name = 'Event Category'
+        verbose_name_plural = 'Event Categories'
+        ordering = ['order']
+
+
     def event_category_media_path(instance, filename):
         return 'categories/{0}_{1}.{2}'.format(instance.id, instance.title, filename[-3:])
 
     title = models.CharField(max_length=50)
     title_heb = models.CharField(max_length=50, null=True)
     image = models.ImageField(upload_to=event_category_media_path)
+    enabled = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0, editable=False, db_index=True)
 
     def __str__(self):
         return self.title
