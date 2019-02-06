@@ -3,12 +3,13 @@ from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from events.models import Event, EventCategory
-from events.utils import get_event_image
-import locale
 from users.models import UserSwipeAction
 from events.models import Event, EventCategory
 from events.utils import get_event_image
+
+import locale
+
+from utils.network import parse_request
 
 
 def index(request):
@@ -25,6 +26,7 @@ def _events_to_json(request, events, up):
         field + '_heb' if up.preferred_language == 'he' else field)) or ''
 
     categories_ids, = parse_request(request, lists=['categoriesIds'])
+
     return [{
                   'id': event.id,
                   'title': _by_lang(event, 'title'),
