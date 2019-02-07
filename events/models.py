@@ -136,6 +136,7 @@ class Event(models.Model):
     enabled = models.BooleanField(default=True)
     image = models.ImageField(upload_to=events_media_path, blank=True)
     audiences = models.ManyToManyField(Audience)
+    rating = models.IntegerField(default=0)
 
 
     def __str__(self):

@@ -57,7 +57,7 @@ def _events_to_json(request, events, up):
 def get_events(request):
 
     valid = Q(title__isnull=False, enabled=True)#, start_time__gte=timezone.now())
-    events = Event.objects.filter(valid)
+    events = Event.objects.filter(valid).order_by('-rating')
 
     events_json = _events_to_json(request, events[:50], request.user.userprofile)
     return JsonResponse(events_json, safe=False)
@@ -72,7 +72,7 @@ def get_user_selected_events(request):
     swipe_right_actions = UserSwipeAction.objects.filter(user=request.user.userprofile, action=UserSwipeAction.ACTION_RIGHT)
     selected_events_ids = swipe_right_actions.values_list('event', flat=True)
     selected_events = Event.objects.filter(id__in=selected_events_ids)
-    events_json = _events_to_json(request, selected_events, up)
+    events_json = _events_to_json(request, selected_events[:20], up)
 
     return JsonResponse(events_json, safe=False)
 
