@@ -24,8 +24,9 @@ def sign_in(request):
         print('user signed in: username - ' + up.user.username)
     user = authenticate(username=username)
     login(request, user)
-    up.preferred_categories.clear()
-    up.preferred_categories.add(*categories_ids)
+    if categories_ids:
+        up.preferred_categories.clear()
+        up.preferred_categories.add(*categories_ids)
     update_device_info(up, device_info)
     up_json = up_to_json(up, request)
     return JsonResponse(up_json)

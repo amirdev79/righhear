@@ -12,6 +12,7 @@ def up_to_json(up, request):
             'lastName': up.user.last_name,
             'username': up.user.username,
             'categories': [{
+                'id': c.id,
                 'title': c.title,
                 'image': request.build_absolute_uri(c.image.url) if c.image else ''}
                 for c in up.preferred_categories.all()],
