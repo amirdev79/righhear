@@ -114,14 +114,13 @@ def events_to_csv():
     events_csv_file = tempfile.NamedTemporaryFile(suffix='.csv')
     with open(events_csv_file.name, 'w+') as f:
         f.write('\n'.join(new_events))
-        email.attach_file(events_csv_file.name)
 
     venues_csv_file = tempfile.NamedTemporaryFile(suffix='.csv')
     with open(venues_csv_file.name, 'w+') as f:
         f.write('\n'.join(new_venues))
-        email.attach_file(venues_csv_file.name)
 
-
+    email.attach_file(events_csv_file.name)
+    email.attach_file(venues_csv_file.name)
     email.send()
 
 
