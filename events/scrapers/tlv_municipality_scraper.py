@@ -17,10 +17,23 @@ CITY = 'תל אביב יפו'
 FREE_LABEL = 'לא בתשלום'
 TLV_EVENT_DEFAULT_IMAGE = ImageFile(open("static/images/events/categories_defauls/tlv_municipality.png", "rb"))
 TLV_SCRAPER_USER = UserProfile.objects.get(user__username=settings.TLV_SCRAPER_USERNAME)
-CSV_FIELDS = [
-    'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'categories', 'sub_categories', 'audiences',
+# CSV_FIELDS = [
+#     'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'categories', 'sub_categories', 'audiences',
+#     'short_description', 'short_description_heb', 'description', 'description_heb', 'price', 'image_url', 'venue_name', 'venue_name_heb'
+#     'venue_street_address', 'venue_street_addresss_heb', 'venue_city', 'venue_city_heb', 'venue_phone_number', 'venue_longitude', 'venue_latitude', 'venue_link']
+
+
+CSV_EVENTS_FIELDS = [
+    'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'category_id', 'sub_categories', 'audiences',
     'short_description', 'short_description_heb', 'description', 'description_heb', 'price', 'image_url', 'venue_name',
-    'venue_street_address', 'venue_city', 'venue_phone_number', 'venue_lng', 'venue_lat', 'venue_link']
+    'venue_name_heb', 'venue_street_address', 'venue_street_addresss_heb', 'venue_city', 'venue_city_heb',
+    'venue_phone_number',
+    'venue_longitude', 'venue_latitude', 'venue_link']
+
+
+CSV_VENUES_FIELDS = [
+    'name', 'name_heb', 'street_address', 'street_address_heb', 'city', 'city_heb', 'phone_number', 'longitude', 'latitude', 'link'
+]
 
 EVENTS_URL = 'https://www.tel-aviv.gov.il/_vti_bin/TlvSP2013PublicSite/TlvListUtils.svc/getEventsList'
 PAYLOAD = {
@@ -64,6 +77,10 @@ DEFAULTS_FOR_SCRAPER = {'title': '',
                         'short_description_heb': '',
                         'price': '',
                         'image_url': '',
+                        'venue_name': '',
+                        'venue_street_address_heb': '',
+                        'venue_city': 'Tel Aviv-Yafo, Israel',
+                        'venue_city_heb': 'תל אביב יפו',
                         'venue_phone_number': '',
                         'venue_link': '',
                         }
@@ -82,30 +99,42 @@ def _events_to_csv(events):
         start_time_str=Cast(TruncSecond('start_time', DateTimeField()), CharField())).values_list('title_heb',
                                                                                                   'start_time_str')
 
-    csv_file = tempfile.NamedTemporaryFile(suffix='.csv')
-    with open(csv_file.name, 'w+') as f:
-        lines = [','.join(CSV_FIELDS)]
-        for i, event_json in enumerate(events):
-            print('doing event ' + str(i))
-            parsed = _parse_event(event_json)
-            parsed.update(DEFAULTS_FOR_SCRAPER)
-            event_start_datetime = _to_datetime(parsed.get('start_time'))
-            event_end_datetime = _to_datetime(parsed.get('end_time'))
+    new_events = [','.join(CSV_EVENTS_FIELDS)]
+    new_venues = [','.join(CSV_VENUES_FIELDS)]
+    existing_venues = Venue.objects.values_list('name_heb', flat=True)
 
-            # convert scraper format - 19.02.19, 10:30, to db format - 2019-02-19 10:30:00
-            db_format_datetime = event_start_datetime.strftime('%Y-%m-%d %H:%M:%S')
+    for i, event_json in enumerate(events):
+        print('doing event ' + str(i))
+        parsed = _parse_event(event_json)
+        parsed.update(DEFAULTS_FOR_SCRAPER)
+        event_start_datetime = _to_datetime(parsed.get('start_time'))
+        event_end_datetime = _to_datetime(parsed.get('end_time'))
 
-            # test if event exists in  db by looking up events with same title & start time
-            event_cmp_fields = parsed.get('title_heb'), db_format_datetime
-            if event_cmp_fields in existing_events_cmp_fields:
-                print('event %s - %s is already in DB. excluding from csv...' % (
-                    event_cmp_fields[0], event_cmp_fields[1]))
-            elif event_end_datetime < datetime.datetime.now().astimezone():
-                print('event %s - %s-%s time has passed. excluding from csv...' % (
-                    event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
-            else:
-                lines.append(','.join(['"' + parsed.get(field, '').replace('"', '""') + '"' for field in CSV_FIELDS]))
-        f.write('\n'.join(lines))
+        # convert scraper format - 19.02.19, 10:30, to db format - 2019-02-19 10:30:00
+        db_format_datetime = event_start_datetime.strftime('%Y-%m-%d %H:%M:%S')
+
+        # test if event exists in  db by looking up events with same title & start time
+        event_cmp_fields = parsed.get('title_heb'), db_format_datetime
+        if event_cmp_fields in existing_events_cmp_fields:
+            print('event %s - %s is already in DB. excluding from csv...' % (
+                event_cmp_fields[0], event_cmp_fields[1]))
+        elif event_end_datetime < datetime.datetime.now().astimezone():
+            print('event %s - %s-%s time has passed. excluding from csv...' % (
+                event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
+        else:
+            new_events.append(','.join(['"' + parsed.get(field, '').replace('"', '""') + '"' for field in CSV_EVENTS_FIELDS]))
+
+        if parsed['venue_name_heb'] not in existing_venues:
+            new_venues.append(
+                ','.join(['"' + parsed.get('venue_' + field,'' ).replace('"', '""') + '"' for field in CSV_VENUES_FIELDS]))
+
+        csv_events_file = tempfile.NamedTemporaryFile(suffix='.csv')
+        with open(csv_events_file.name, 'w+') as f:
+            f.write('\n'.join(new_events))
+
+        csv_venues_file = tempfile.NamedTemporaryFile(suffix='.csv')
+        with open(csv_venues_file.name, 'w+') as f:
+            f.write('\n'.join(new_venues))
 
     print('csv created. sending by email...')
 
@@ -116,7 +145,8 @@ def _events_to_csv(events):
         ['righthearil@gmail.com'],
     )
 
-    email.attach_file(csv_file.name)
+    email.attach_file(csv_events_file.name)
+    email.attach_file(csv_venues_file.name)
     email.send()
 
 
@@ -160,7 +190,7 @@ def _add_event_to_db(event_dic):
 
 def _parse_event(event_json):
     parsed_event = {'title_heb': event_json.get('Title'), 'start_time': event_json.get('TlvStartDate'),
-                    'venue_name': event_json.get('TlvCityLocation'), 'description_heb': event_json.get('TlvSummary'),
+                    'venue_name_heb': event_json.get('TlvCityLocation'), 'description_heb': event_json.get('TlvSummary'),
                     'audiences': '|'.join(event_json.get('TlvAudiences').split('\n\n')),
                     'end_time': event_json.get('TlvEndDate'),
                     'categories': '|'.join(event_json.get('TlvItemCategory').split(';')),
