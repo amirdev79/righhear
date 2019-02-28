@@ -7,10 +7,13 @@ from users.models import UserDevice, UserData, FacebookEvent
 
 
 def up_to_json(up, request):
+
+    image = up.user_data.fb_profile_image_normal
     return {'id': up.id,
             'firstName': up.user.first_name,
             'lastName': up.user.last_name,
             'username': up.user.username,
+            'image': request.build_absolute_uri(image.url) if image else '',
             'categories': [{
                 'id': c.id,
                 'title': c.title,
@@ -42,8 +45,8 @@ def update_device_info(up, device_info):
 def _update_user_fb_events(up, events):
     ud_fb_events = []
     for event in events:
-        defaults = {'name': event['name'], 'description': event['description'], 'start_time': event['start_time'],
-                    'end_time': event['end_time'], 'place': event['place']}
+        defaults = {'name': event.get('name'), 'description': event.get('description'), 'start_time': event.get('start_time'),
+                    'end_time': event.get('end_time'), 'place': event.get('place')}
         fe, created = FacebookEvent.objects.get_or_create(fb_id=event['id'], defaults=defaults)
         ud_fb_events.append(fe)
     up.user_data.fb_events.add(*ud_fb_events)

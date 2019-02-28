@@ -76,6 +76,7 @@ def get_user_selected_events(request):
 
     return JsonResponse(events_json, safe=False)
 
+
 @csrf_exempt
 @login_required
 def get_categories(request):
