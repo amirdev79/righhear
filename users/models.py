@@ -67,3 +67,22 @@ class UserSwipeAction(models.Model):
 
     def __str__(self):
         return self.user.user.username + ', ' + str(self.event.id) + ', ' + self.SWIPE_ACTION_CHOICES[self.action]
+
+
+class UserRelations(models.Model):
+    RELATION_FRIEND, = 0,
+    RELATION_CHOICES = {
+        RELATION_FRIEND: 'Friend',
+    }
+
+    STATE_PENDING, STATE_CONNECTED = 0, 1
+    STATE_CHOICES = {
+        STATE_PENDING: 'Pending',
+        STATE_CONNECTED: 'Connected'
+    }
+
+    relating_user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='user_relations_relating')
+    related_user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, related_name='user_relations_related')
+    relation = models.IntegerField(choices=RELATION_CHOICES.items(), default=RELATION_FRIEND)
+    state = models.IntegerField(choices=STATE_CHOICES.items(), default=STATE_PENDING)
+    meta_data = JSONField(null=True, blank=True, editable=False)
