@@ -12,7 +12,6 @@ from users.models import UserSwipeAction
 RELATED_USER_FIELDS = ['related_user__id', 'related_user__user__first_name',
                        'related_user__user_data__fb_profile_image_normal']
 
-
 def index(request):
     return HttpResponse("Welcome right Hear :)")
 

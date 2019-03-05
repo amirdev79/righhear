@@ -11,6 +11,8 @@ from users.models import UserProfile, UserSwipeAction
 from users.utils import up_to_json, update_device_info, update_user_fb_data
 from utils.network import parse_request
 
+import logging
+logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def sign_in(request):
@@ -72,6 +74,7 @@ def invite(request):
 def sign_in_with_facebook(request):
     fb_user_id, access_token = parse_request(request, ['userId', 'accessToken'])
     up = request.user.userprofile
+    logger.debug('up: ' + up.user.username + ', fb_user_id: ' + str(fb_user_id) + ', access_token: ' + str(access_token))
     up.fb_id = fb_user_id
     up.fb_access_token = access_token
     up.save()

@@ -152,9 +152,9 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'root': {
-        'level': 'DEBUG',
-        'handlers': ['console'],
-    },
+                'level': 'DEBUG',
+                'handlers': ['console'],
+            },
     'formatters': {
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
@@ -192,17 +192,11 @@ LOGGING = {
         }
     },
     'loggers': {
-        'django.db.backends': {
-            'level': 'ERROR',
-            'handlers': ['django_error'],
-            'propagate': False,
-        },
         'django': {
-            'level': 'DEBUG',
-            'handlers': ['console', 'django_access'],
-            'propagate': False,
+            'handlers': ['django_access'],
+            'propagate': True,
         },
-        'django': {
+        'django.request': {
             'level': 'ERROR',
             'handlers': ['console','django_error'],
             'propagate': False,
