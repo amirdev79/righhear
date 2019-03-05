@@ -61,6 +61,8 @@ def _events_to_json(request, events, up):
     } for event in events]
 
 
+@csrf_exempt
+@login_required
 def get_events(request):
     valid = Q(title__isnull=False, enabled=True)  # , start_time__gte=timezone.now())
     events = Event.objects.filter(valid).order_by('-rating')
