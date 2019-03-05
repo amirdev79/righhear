@@ -3,7 +3,7 @@ from django.core.files.base import ContentFile
 from django.db.utils import IntegrityError
 from django.utils import timezone
 
-from users.models import UserDevice, UserData, FacebookEvent, UserRelations
+from users.models import UserDevice, UserData, FacebookEvent, UserRelations, UserProfile
 
 RELATED_USERS_FIELDS = ['related_user__' + field for field in
                         ['id', 'user__first_name', 'userdata__fb_profile_image_normal']]
@@ -16,7 +16,11 @@ def _get_user_friends(up, request):
 
 
 def up_to_json(up, request):
-    image = up.userdata.fb_profile_image_normal.url if up.userdata and up.userdata.fb_profile_image_normal else None
+    try:
+        image = up.userdata.fb_profile_image_normal.url if up.userdata.fb_profile_image_normal else None
+    except UserProfile.userdata.RelatedObjectDoesNotExist:
+        image = None
+
     return {'id': up.id,
             'firstName': up.user.first_name,
             'lastName': up.user.last_name,
