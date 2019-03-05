@@ -1,31 +1,20 @@
+import locale
+
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, IntegerField, Case, When
+from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from users.models import UserSwipeAction, UserRelations
 from events.models import Event, EventCategory
 from events.utils import get_event_image
+from users.models import UserSwipeAction
 
-import locale
-
-from utils.network import parse_request
-
-RELATED_USER_FIELDS = ['related_user__id', 'related_user__user__first_name', 'related_user__user_data__fb_profile_image_normal']
+RELATED_USER_FIELDS = ['related_user__id', 'related_user__user__first_name',
+                       'related_user__user_data__fb_profile_image_normal']
 
 
 def index(request):
     return HttpResponse("Welcome right Hear :)")
-
-
-def _get_event_people(up, event, request):
-    related_users = UserRelations.objects.filter(relating_user=up).values_list(*RELATED_USER_FIELDS)
-    usas = {usa['user_id']: usa for usa in UserSwipeAction.objects.filter(event=event).values()}
-
-    return [{'id': ru[0],
-             'firstName': ru[1],
-             'image': request.build_absolute_uri(ru[2]) if ru[2] else request.build_absolute_uri('/media/profiles/8/fb_profile_image_normal_FXgx8Di.jpg'),
-             'action': usas.get(ru[0], {}).get('action', -1)} for ru in related_users]
 
 
 def _events_to_json(request, events, up):
@@ -34,7 +23,14 @@ def _events_to_json(request, events, up):
     _by_lang = lambda obj, field: (obj.__getattribute__(
         field + '_heb' if up.preferred_language == 'he' else field)) or ''
 
-    categories_ids, = parse_request(request, lists=['categoriesIds'])
+    events_users = UserSwipeAction.objects.filter(event__in=events, action=UserSwipeAction.ACTION_RIGHT).values_list(
+        'event__id', 'user_id')
+    users_per_event = {}
+    for eu in events_users:
+        if eu[0] in users_per_event:
+            users_per_event[eu[0]].add(eu[1])
+        else:
+            users_per_event[eu[0]] = {eu[1]}
 
     return [{
         'id': event.id,
@@ -61,7 +57,7 @@ def _events_to_json(request, events, up):
                    'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in
                   event.media.all()],
         'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,
-        'people': _get_event_people(up, event, request),
+        'people': list(users_per_event.get(event.id, []))
 
     } for event in events]
 

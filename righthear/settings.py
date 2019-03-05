@@ -15,7 +15,7 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BASE_DB_DIR = '/var/lib/postgresql/10/main'
-PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # .../righthear
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # .../righthear
 
 BASE_STORAGE_PATH = '/rhdata'
 
@@ -26,7 +26,6 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_STORAGE_PATH, 'static')
 
 STATICFILES_DIRS = (PROJECT_DIR + '/static',)
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -86,7 +85,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'righthear.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
@@ -102,7 +100,6 @@ DATABASES = {
 
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -122,7 +119,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
@@ -136,7 +132,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
@@ -147,9 +142,51 @@ GOOGLE_API_KEY = 'AIzaSyCcESmpfQinXSNCbVVnIbAVq3MWbcs_v_o'
 EASY_CO_IL_USERNAME = 'easy_scraper'
 TLV_SCRAPER_USERNAME = 'tlv_scraper'
 
-
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'righthearil@gmail.com'
 EMAIL_HOST_PASSWORD = '!Z2x3c$V'
 EMAIL_PORT = 587
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['console'],
+    },
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'gunicorn': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'verbose',
+            'filename': 'gunicorn_error.log',
+            'maxBytes': 1024 * 1024 * 100,  # 100 mb
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        }
+    },
+    'loggers': {
+        'django.db.backends': {
+            'level': 'DEBUG',
+            'handlers': ['gunicorn'],
+            'propagate': False,
+        },
+        'gunicorn.errors': {
+            'level': 'DEBUG',
+            'handlers': ['gunicorn'],
+            'propagate': True,
+        },
+    },
+}

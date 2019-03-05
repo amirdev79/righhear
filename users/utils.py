@@ -3,11 +3,19 @@ from django.core.files.base import ContentFile
 from django.db.utils import IntegrityError
 from django.utils import timezone
 
-from users.models import UserDevice, UserData, FacebookEvent
+from users.models import UserDevice, UserData, FacebookEvent, UserRelations
+
+RELATED_USERS_FIELDS = ['related_user__' + field for field in
+                        ['id', 'user__first_name', 'user_data__fb_profile_image_normal']]
+
+
+def _get_user_friends(up, request):
+    related_users = UserRelations.objects.filter(relating_user=up).values_list(*RELATED_USERS_FIELDS)
+    return {ru[0]: {'id': ru[0], 'firstName': ru[1], 'image': request.build_absolute_uri(
+        ru[2] or '/media/profiles/8/fb_profile_image_normal_FXgx8Di.jpg')} for ru in related_users}
 
 
 def up_to_json(up, request):
-
     image = up.user_data.fb_profile_image_normal
     return {'id': up.id,
             'firstName': up.user.first_name,
@@ -23,7 +31,8 @@ def up_to_json(up, request):
                 'categoryId': sc.id,
                 'title': sc.title,
                 'image': request.build_absolute_uri(sc.image.url) if sc.image else ''} for sc in
-                up.preferred_sub_categories.all()]}
+                up.preferred_sub_categories.all()],
+            'friends': _get_user_friends(up, request)}
 
 
 def update_device_info(up, device_info):
@@ -45,7 +54,8 @@ def update_device_info(up, device_info):
 def _update_user_fb_events(up, events):
     ud_fb_events = []
     for event in events:
-        defaults = {'name': event.get('name'), 'description': event.get('description'), 'start_time': event.get('start_time'),
+        defaults = {'name': event.get('name'), 'description': event.get('description'),
+                    'start_time': event.get('start_time'),
                     'end_time': event.get('end_time'), 'place': event.get('place')}
         fe, created = FacebookEvent.objects.get_or_create(fb_id=event['id'], defaults=defaults)
         ud_fb_events.append(fe)
