@@ -58,7 +58,6 @@ def update_user_profile(request):
     return JsonResponse(up_json)
 
 
-
 def landing_page(request):
     return HttpResponse("Right Hear is a mobile app. Please open the link on your mobile")
 

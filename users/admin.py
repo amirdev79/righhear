@@ -16,7 +16,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 
 class UserDataAdmin(admin.ModelAdmin):
-    list_display = ('userprofile', 'fb_profile_image_small', 'fb_profile_image_normal', 'fb_profile_image_large')
+    list_display = ('user', 'fb_profile_image_small', 'fb_profile_image_normal', 'fb_profile_image_large')
 
 
 admin.site.register(UserProfile, UserProfileAdmin)

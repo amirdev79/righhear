@@ -6,7 +6,7 @@ from django.utils import timezone
 from users.models import UserDevice, UserData, FacebookEvent, UserRelations
 
 RELATED_USERS_FIELDS = ['related_user__' + field for field in
-                        ['id', 'user__first_name', 'user_data__fb_profile_image_normal']]
+                        ['id', 'user__first_name', 'userdata__fb_profile_image_normal']]
 
 
 def _get_user_friends(up, request):
@@ -16,7 +16,7 @@ def _get_user_friends(up, request):
 
 
 def up_to_json(up, request):
-    image = up.user_data.fb_profile_image_normal.url if up.user_data and up.user_data.fb_profile_image_normal else None
+    image = up.userdata.fb_profile_image_normal.url if up.userdata and up.userdata.fb_profile_image_normal else None
     return {'id': up.id,
             'firstName': up.user.first_name,
             'lastName': up.user.last_name,
@@ -59,7 +59,7 @@ def _update_user_fb_events(up, events):
                     'end_time': event.get('end_time'), 'place': event.get('place')}
         fe, created = FacebookEvent.objects.get_or_create(fb_id=event['id'], defaults=defaults)
         ud_fb_events.append(fe)
-    up.user_data.fb_events.add(*ud_fb_events)
+    up.userdata.fb_events.add(*ud_fb_events)
 
 
 def _update_user_fb_friends(up, friends):
@@ -68,13 +68,13 @@ def _update_user_fb_friends(up, friends):
 
 def _update_user_fb_profile_images(up, small, normal, large):
     ext = '.jpg' if small['mime-type'] == 'image/jpeg' else '.png'
-    up.user_data.fb_profile_image_small = ContentFile(small['data'], name='profiles/{0}/{1}'.format(up.id,
+    up.userdata.fb_profile_image_small = ContentFile(small['data'], name='profiles/{0}/{1}'.format(up.id,
                                                                                                     'fb_profile_image_small' + ext))
-    up.user_data.fb_profile_image_normal = ContentFile(normal['data'], name='profiles/{0}/{1}'.format(up.id,
+    up.userdata.fb_profile_image_normal = ContentFile(normal['data'], name='profiles/{0}/{1}'.format(up.id,
                                                                                                       'fb_profile_image_normal' + ext))
-    up.user_data.fb_profile_image_large = ContentFile(large['data'], name='profiles/{0}/{1}'.format(up.id,
+    up.userdata.fb_profile_image_large = ContentFile(large['data'], name='profiles/{0}/{1}'.format(up.id,
                                                                                                     'fb_profile_image_large' + ext))
-    up.user_data.save()
+    up.userdata.save()
 
 
 def update_user_fb_data(up):
@@ -88,7 +88,7 @@ def update_user_fb_data(up):
     friends = graph.get_connections(id='me', connection_name='friends')
     up.user.first_name, up.user.last_name = basic_fb_data.get('first_name'), basic_fb_data.get('last_name')
     up.user.save()
-    UserData.objects.get_or_create(userprofile=up)
+    UserData.objects.get_or_create(user=up)
     _update_user_fb_profile_images(up, profile_picture_small, profile_picture_normal, profile_picture_large)
     _update_user_fb_events(up, events['data'])
     _update_user_fb_friends(up, friends['data'])
