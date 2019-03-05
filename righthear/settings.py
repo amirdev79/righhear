@@ -164,11 +164,18 @@ LOGGING = {
         },
     },
     'handlers': {
-        'gunicorn': {
+        'gunicorn_error': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'verbose',
-            'filename': 'gunicorn_error.log',
+            'filename': 'logs/gunicorn_error.log',
+            'maxBytes': 1024 * 1024 * 100,  # 100 mb
+        },
+        'gunicorn_debug': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'verbose',
+            'filename': 'logs/gunicorn_access.log',
             'maxBytes': 1024 * 1024 * 100,  # 100 mb
         },
         'console': {
@@ -179,13 +186,23 @@ LOGGING = {
     },
     'loggers': {
         'django.db.backends': {
+            'level': 'ERROR',
+            'handlers': ['gunicorn_error'],
+            'propagate': False,
+        },
+        'django': {
+            'level': 'ERROR',
+            'handlers': ['console','gunicorn_error'],
+            'propagate': False,
+        },
+        'django': {
             'level': 'DEBUG',
-            'handlers': ['gunicorn'],
+            'handlers': ['console','gunicorn_debug'],
             'propagate': False,
         },
         'gunicorn.errors': {
             'level': 'DEBUG',
-            'handlers': ['gunicorn'],
+            'handlers': ['gunicorn_error'],
             'propagate': True,
         },
     },

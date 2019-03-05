@@ -1,0 +1,102 @@
+ERROR 2019-03-05 10:32:28,027 log 25376 139955017107200 Internal Server Error: /events/get_events/
+Traceback (most recent call last):
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 126, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 124, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/mnt/dev/righthear/events/views.py", line 69, in get_events
+    events_json = _events_to_json(request, events[:50], request.user.userprofile)
+  File "/mnt/dev/righthear/events/views.py", line 62, in _events_to_json
+    } for event in events]
+  File "/mnt/dev/righthear/events/views.py", line 62, in <listcomp>
+    } for event in events]
+AttributeError: 'Event' object has no attribute 'ids'
+ERROR 2019-03-05 10:32:28,016 log 25376 139954931889920 Internal Server Error: /events/get_events/
+Traceback (most recent call last):
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 126, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 124, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/mnt/dev/righthear/events/views.py", line 69, in get_events
+    events_json = _events_to_json(request, events[:50], request.user.userprofile)
+  File "/mnt/dev/righthear/events/views.py", line 62, in _events_to_json
+    } for event in events]
+  File "/mnt/dev/righthear/events/views.py", line 62, in <listcomp>
+    } for event in events]
+AttributeError: 'Event' object has no attribute 'ids'
+ERROR 2019-03-05 10:32:28,083 log 25376 139954923497216 Internal Server Error: /events/get_events/
+Traceback (most recent call last):
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 126, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 124, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/mnt/dev/righthear/events/views.py", line 69, in get_events
+    events_json = _events_to_json(request, events[:50], request.user.userprofile)
+  File "/mnt/dev/righthear/events/views.py", line 62, in _events_to_json
+    } for event in events]
+  File "/mnt/dev/righthear/events/views.py", line 62, in <listcomp>
+    } for event in events]
+AttributeError: 'Event' object has no attribute 'ids'
+ERROR 2019-03-05 10:32:28,086 basehttp 25376 139955017107200 "GET /events/get_events/ HTTP/1.1" 500 87134
+ERROR 2019-03-05 10:32:28,088 basehttp 25376 139954923497216 "GET /events/get_events/ HTTP/1.1" 500 87135
+ERROR 2019-03-05 10:32:28,089 basehttp 25376 139954931889920 "GET /events/get_events/ HTTP/1.1" 500 87135
+INFO 2019-03-05 10:34:24,538 basehttp 25511 139729161107200 "POST /users/sign_in/ HTTP/1.1" 200 542
+INFO 2019-03-05 10:34:25,642 basehttp 25511 139729161107200 "GET /events/get_categories HTTP/1.1" 301 0
+INFO 2019-03-05 10:34:25,703 basehttp 25511 139729161107200 "GET /events/get_categories/ HTTP/1.1" 200 1835
+INFO 2019-03-05 10:34:26,143 basehttp 25511 139729141602048 "GET /events/get_events HTTP/1.1" 301 0
+INFO 2019-03-05 10:34:26,148 basehttp 25511 139729149994752 "GET /events/get_events HTTP/1.1" 301 0
+INFO 2019-03-05 10:34:26,151 basehttp 25511 139729161107200 "GET /events/get_events HTTP/1.1" 301 0
+ERROR 2019-03-05 10:34:26,930 log 25511 139729161107200 Internal Server Error: /events/get_events/
+Traceback (most recent call last):
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 126, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 124, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/mnt/dev/righthear/events/views.py", line 69, in get_events
+    events_json = _events_to_json(request, events[:50], request.user.userprofile)
+  File "/mnt/dev/righthear/events/views.py", line 62, in _events_to_json
+    } for event in events]
+  File "/mnt/dev/righthear/events/views.py", line 62, in <listcomp>
+    } for event in events]
+AttributeError: 'Event' object has no attribute 'ids'
+ERROR 2019-03-05 10:34:26,946 log 25511 139729149994752 Internal Server Error: /events/get_events/
+Traceback (most recent call last):
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 126, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 124, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/mnt/dev/righthear/events/views.py", line 69, in get_events
+    events_json = _events_to_json(request, events[:50], request.user.userprofile)
+  File "/mnt/dev/righthear/events/views.py", line 62, in _events_to_json
+    } for event in events]
+  File "/mnt/dev/righthear/events/views.py", line 62, in <listcomp>
+    } for event in events]
+AttributeError: 'Event' object has no attribute 'ids'
+ERROR 2019-03-05 10:34:27,028 log 25511 139729141602048 Internal Server Error: /events/get_events/
+Traceback (most recent call last):
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/exception.py", line 34, in inner
+    response = get_response(request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 126, in _get_response
+    response = self.process_exception_by_middleware(e, request)
+  File "/mnt/dev/py3/lib/python3.6/site-packages/django/core/handlers/base.py", line 124, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/mnt/dev/righthear/events/views.py", line 69, in get_events
+    events_json = _events_to_json(request, events[:50], request.user.userprofile)
+  File "/mnt/dev/righthear/events/views.py", line 62, in _events_to_json
+    } for event in events]
+  File "/mnt/dev/righthear/events/views.py", line 62, in <listcomp>
+    } for event in events]
+AttributeError: 'Event' object has no attribute 'ids'
+ERROR 2019-03-05 10:34:27,032 basehttp 25511 139729161107200 "GET /events/get_events/ HTTP/1.1" 500 87576
+ERROR 2019-03-05 10:34:27,032 basehttp 25511 139729149994752 "GET /events/get_events/ HTTP/1.1" 500 87577
+ERROR 2019-03-05 10:34:27,036 basehttp 25511 139729141602048 "GET /events/get_events/ HTTP/1.1" 500 87577
