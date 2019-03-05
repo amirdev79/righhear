@@ -164,18 +164,25 @@ LOGGING = {
         },
     },
     'handlers': {
-        'gunicorn_error': {
+        'gunicorn': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'verbose',
+            'filename': 'logs/gunicorn.log',
+            'maxBytes': 1024 * 1024 * 100,  # 100 mb
+        },
+        'django_error': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'verbose',
-            'filename': 'logs/gunicorn_error.log',
+            'filename': 'logs/django_error.log',
             'maxBytes': 1024 * 1024 * 100,  # 100 mb
         },
-        'gunicorn_debug': {
+        'django_access': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'simple',
-            'filename': 'logs/gunicorn_access.log',
+            'filename': 'logs/django_access.log',
             'maxBytes': 1024 * 1024 * 100,  # 100 mb
         },
         'console': {
@@ -187,22 +194,22 @@ LOGGING = {
     'loggers': {
         'django.db.backends': {
             'level': 'ERROR',
-            'handlers': ['gunicorn_error'],
-            'propagate': False,
-        },
-        'django': {
-            'level': 'DEBUG',
-            'handlers': ['console', 'gunicorn_debug'],
+            'handlers': ['django_error'],
             'propagate': False,
         },
         'django': {
             'level': 'ERROR',
-            'handlers': ['console','gunicorn_error'],
-            'propagate': False,
+            'handlers': ['console','django_error'],
+            'propagate': True,
+        },
+        'django': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'django_access'],
+            'propagate': True,
         },
         'gunicorn.errors': {
             'level': 'DEBUG',
-            'handlers': ['gunicorn_error'],
+            'handlers': ['gunicorn'],
             'propagate': True,
         },
     },
