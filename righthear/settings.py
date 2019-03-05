@@ -174,7 +174,7 @@ LOGGING = {
         'gunicorn_debug': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'formatter': 'verbose',
+            'formatter': 'simple',
             'filename': 'logs/gunicorn_access.log',
             'maxBytes': 1024 * 1024 * 100,  # 100 mb
         },
