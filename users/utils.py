@@ -16,12 +16,12 @@ def _get_user_friends(up, request):
 
 
 def up_to_json(up, request):
-    image = up.user_data.fb_profile_image_normal
+    image = up.user_data.fb_profile_image_normal.url if up.user_data and up.user_data.fb_profile_image_normal else None
     return {'id': up.id,
             'firstName': up.user.first_name,
             'lastName': up.user.last_name,
             'username': up.user.username,
-            'image': request.build_absolute_uri(image.url) if image else '',
+            'image': request.build_absolute_uri(image) if image else '',
             'categories': [{
                 'id': c.id,
                 'title': c.title,

@@ -191,13 +191,13 @@ LOGGING = {
             'propagate': False,
         },
         'django': {
-            'level': 'ERROR',
-            'handlers': ['console','gunicorn_error'],
+            'level': 'DEBUG',
+            'handlers': ['console', 'gunicorn_debug'],
             'propagate': False,
         },
         'django': {
-            'level': 'DEBUG',
-            'handlers': ['console','gunicorn_debug'],
+            'level': 'ERROR',
+            'handlers': ['console','gunicorn_error'],
             'propagate': False,
         },
         'gunicorn.errors': {

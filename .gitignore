@@ -5,4 +5,5 @@
 .DS_Store
 /app/build
 *.pyc
-/logs
+logs/
+
