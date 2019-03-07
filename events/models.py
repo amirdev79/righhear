@@ -21,6 +21,7 @@ class EventCategory(SortableMixin):
     image = models.ImageField(upload_to=event_category_media_path)
     enabled = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0, editable=False, db_index=True)
+    icon_name = models.CharField(max_length=10, null=True)
 
     def __str__(self):
         return self.title
@@ -109,6 +110,9 @@ class Audience(models.Model):
     title = models.CharField(db_index=True, max_length=50)
     title_heb = models.CharField(db_index=True, max_length=50, null=True)
     icon = models.ImageField(upload_to=audiences_media_path, blank=True, null=True)
+
+    def __str__(self):
+        return self.title + ' - ' + self.title_heb or ''
 
 
 class Event(models.Model):

@@ -8,7 +8,7 @@ from django.core.mail import send_mail, EmailMessage
 from django.db.models import DateTimeField, CharField
 from django.db.models.functions import TruncSecond, Cast
 
-from events.models import EventCategory, Venue, Event, Audience
+from events.models import EventCategory, Venue, Event, Audience, EventSubCategory
 from events.utils import get_gmaps_info
 from righthear import settings
 from users.models import UserProfile
@@ -68,6 +68,25 @@ TLV_CATEGORIES_MAP = {
     'kids': 28,
     'community': 27,
 }
+
+TLV_CATEGORIES_MAPPING = {
+        'מוזיקה': 0,
+        'בריאות וספורט': 1,
+        'מחול': 5,
+        'ילדים': 3,
+        'סרטים': 5,
+        'אירועים קהילתיים': 5,
+        'אמנות, תערוכות וכנסים': 5,
+        'תאטרון': 5,
+        'דיגיטף': 3,
+        'אירועי חוצות': 5,
+        'סיורים': 5,
+        'מומלצים': 5,
+        'ספרות והעשרה': 5,
+        'בארים ואלכוהול': 4,
+        'סטנדאפ ונונסנס': 6,
+        'אוכל': 2,
+    }
 
 DEFAULTS_FOR_SCRAPER = {'title': '',
                         'description': '',
@@ -134,7 +153,7 @@ def _events_to_csv(events):
 
         csv_venues_file = tempfile.NamedTemporaryFile(suffix='.csv')
         with open(csv_venues_file.name, 'w+') as f:
-            f.write('\n'.join(new_venues))
+            f.write('\n'.join(set(new_venues)))
 
     print('csv created. sending by email...')
 
@@ -180,13 +199,19 @@ def _add_event_to_db(event_dic):
                                                        defaults=defaults)
     if event_created:
         audiences = Audience.objects.filter(title_heb__in=_d('audiences').split('|'))
-        categories = EventCategory.objects.filter(title_heb__in=_d('categories').split('|'))
+        sub_categories = EventSubCategory.objects.filter(title_heb__in=d('categories').split('|'))
         event.image = TLV_EVENT_DEFAULT_IMAGE
-        event.categories.add(*categories)
+        event.categories.add(*sub_categories.values_list('category__id', flat=True))
+        event.sub_categories.add(*sub_categories)
         event.audiences.add(*audiences)
         event.save()
         print('event created: ' + str(event))
 
+
+def _map_categories(tlv_categories):
+    categories_ids = set()
+    map(lambda cat: categories_ids.add(TLV_CATEGORIES_MAPPING.get(cat, 5)), tlv_categories)
+    return categories_ids
 
 def _parse_event(event_json):
     parsed_event = {'title_heb': event_json.get('Title'), 'start_time': event_json.get('TlvStartDate'),
