@@ -7,7 +7,7 @@ import tempfile
 import requests
 from django.core.files.images import ImageFile
 from django.core.mail import EmailMessage
-from django.db.models import DateTimeField, CharField
+from django.db.models import DateTimeField, CharField, Q
 from django.db.models.functions import Cast, TruncSecond
 
 from events.models import Event, EventCategory, Venue
@@ -75,7 +75,7 @@ def _events_category_to_csv(category):
     events = get_events(category)
     cat_metadata = SCRAPER_CATEGORIES.get(category)
 
-    existing_events_cmp_fields = Event.objects.filter(start_time__gte=datetime.datetime.now()).annotate(
+    existing_events_cmp_fields = Event.objects.filter(Q(start_time__isnull=True) | Q(start_time__gte=datetime.datetime.now())).annotate(
         start_time_str=Cast(TruncSecond('start_time', DateTimeField()), CharField())).values_list('title_heb',
                                                                                                   'start_time_str')
     new_events = []
@@ -104,7 +104,7 @@ def _events_category_to_csv(category):
             print('event %s - %s-%s time has passed. excluding from csv...' % (
                 event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
         else:
-            print ('new event: ' + str(parsed))
+            print ('new event: ' + str(parsed) + ', cmp_fields: ' + str(event_cmp_fields))
             new_events.append(
                 ','.join(['"' + (parsed.get(field, '') or '').replace('"', '""').strip() + '"' for field in CSV_EVENTS_FIELDS]))
             if (parsed['venue_name_heb'].strip(), parsed['venue_city_heb'].strip()) not in existing_venues:
