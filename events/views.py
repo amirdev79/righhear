@@ -52,7 +52,7 @@ def _events_to_json(request, events, up):
                    'image': request.build_absolute_uri(event.artist.image.url),
                    'media': [{'type': m.type, 'link': m.link} for m in
                              event.artist.media.all()]} if event.artist else None,
-        'media': [{'type': m.type, 'link': m.link,
+        'media': [{'type': m.type, 'link': m.link, 'youtubeId': m.youtube_id, 'playbackStart': m.playback_start, 'playbackEnd': m.playback_end,
                    'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in
                   event.media.all()],
         'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,

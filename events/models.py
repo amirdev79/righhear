@@ -61,11 +61,12 @@ class Media(models.Model):
         return 'media_thumbnails/{0}/{1}'.format(instance.id if instance.id else 'new', filename)
 
 
-    TYPE_IMAGE, TYPE_AUDIO, TYPE_VIDEO = "IMG", "AUD", "VID"
+    TYPE_IMAGE, TYPE_AUDIO, TYPE_VIDEO, TYPE_YOUTUBE = "IMG", "AUD", "VID", "YT"
     MEDIA_TYPE_CHOICES = {
         TYPE_IMAGE: "Image",
         TYPE_AUDIO: "Audio",
         TYPE_VIDEO: "Video",
+        TYPE_YOUTUBE: "Youtube"
     }
 
     SOURCE_EVENT, SOURCE_ARTIST = "SRC_EVENT", "SRC_ARTIST"
@@ -80,6 +81,9 @@ class Media(models.Model):
     source = models.CharField(max_length=10, choices=MEDIA_SOURCE_CHOICES.items(), default=SOURCE_EVENT)
     link = models.URLField(blank=True)
     thumbnail = models.ImageField(upload_to=thumbnail_media_path, blank=True)
+    youtube_id = models.CharField(max_length=20, null=True, blank=True)
+    playback_start = models.IntegerField(blank=True, null=True)
+    playback_end = models.IntegerField(blank=True, null=True)
 
 
     def __str__(self):
