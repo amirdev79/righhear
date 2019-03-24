@@ -4,127 +4,297 @@
     "pk": 0,
     "fields": {
       "title": "Music",
-      "title_heb": "מוזיקה"
+      "title_heb": "מוזיקה",
+      "icon_name": "music"
     }
   },
   {
     "model": "events.EventCategory",
     "pk": 1,
     "fields": {
-      "title": "Health, Lifestyle & Sports",
-      "title_heb": "בריאות וספורט"
+      "title": "Lifestyle & Sports",
+      "title_heb": "בריאות וספורט",
+      "icon_name": "lifestyle"
     }
   },
   {
     "model": "events.EventCategory",
     "pk": 2,
     "fields": {
-      "title": "Dance",
-      "title_heb": "מחול"
+      "title": "Food",
+      "title_heb": "אוכל",
+      "icon_name": "food"
+
     }
   },
   {
     "model": "events.EventCategory",
     "pk": 3,
     "fields": {
-      "title": "Kids",
-      "title_heb": "ילדים"
+      "title": "Family & Kids",
+      "title_heb": "משפחות וילדים",
+      "icon_name": "family"
     }
   },
   {
     "model": "events.EventCategory",
     "pk": 4,
     "fields": {
-      "title": "Movies",
-      "title_heb": "סרטים"
+      "title": "Bars & Alcohol",
+      "title_heb": "בארים ואלכוהול",
+      "icon_name": "bars"
     }
   },
   {
     "model": "events.EventCategory",
     "pk": 5,
     "fields": {
-      "title": "Communities",
-      "title_heb": "אירועים קהילתיים"
+      "title": "Cultural Events",
+      "title_heb": "אירועי תרבות",
+      "icon_name": "culture"
     }
   },
   {
     "model": "events.EventCategory",
     "pk": 6,
     "fields": {
-      "title": "Art, Exhibitions & Conventions",
-      "title_heb": "אמנות, תערוכות וכנסים"
+      "title": "Standup & Laughs",
+      "title_heb": "סטדנאפ ובידור",
+      "icon_name": "standup"
     }
   },
   {
     "model": "events.EventCategory",
     "pk": 7,
     "fields": {
-      "title": "Tours",
-      "title_heb": "סיורים"
+      "title": "Clubs",
+      "title_heb": "מועדונים",
+      "icon_name": "clubs"
     }
   },
   {
-    "model": "events.EventCategory",
+    "model": "events.EventSubCategory",
+    "pk": 0,
+    "fields": {
+      "title": "Music",
+      "title_heb": "Music",
+      "category": 0
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 1,
+    "fields": {
+      "title": "Health, Lifestyle & Sports",
+      "title_heb": "בריאות וספורט",
+      "category": 1
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 2,
+    "fields": {
+      "title": "Dance",
+      "title_heb": "מחול",
+      "category": 5
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 3,
+    "fields": {
+      "title": "Kids",
+      "title_heb": "ילדים",
+      "category": 3
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 4,
+    "fields": {
+      "title": "Movies",
+      "title_heb": "סרטים",
+      "category": 5
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 5,
+    "fields": {
+      "title": "Community",
+      "title_heb": "אירועים קהילתיים",
+      "category": 5
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 6,
+    "fields": {
+      "title": "Art & Exhibitions",
+      "title_heb": "אמנות, תערוכות וכנסים",
+      "category": 5
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 7,
+    "fields": {
+      "title": "Tours",
+      "title_heb": "סיורים",
+      "category": 5
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
     "pk": 8,
     "fields": {
       "title": "Theater",
-      "title_heb": "תאטרון"
+      "title_heb": "תאטרון",
+      "category": 5
     }
   },
   {
-    "model": "events.EventCategory",
+    "model": "events.EventSubCategory",
     "pk": 9,
     "fields": {
       "title": "Infants",
-      "title_heb": "דיגיטף"
+      "title_heb": "דיגיטף",
+      "category": 3
     }
   },
   {
-    "model": "events.EventCategory",
+    "model": "events.EventSubCategory",
     "pk": 10,
     "fields": {
       "title": "Outdoors",
-      "title_heb": "אירועי חוצות"
+      "title_heb": "אירועי חוצות",
+      "category": 5
     }
   },
   {
-    "model": "events.EventCategory",
+    "model": "events.EventSubCategory",
     "pk": 11,
     "fields": {
-      "title": "Leisure & Entertainment",
-      "title_heb": "בידור ופנאי"
+      "title": "Entertainment",
+      "title_heb": "בידור ופנאי",
+      "category": 6
     }
   },
   {
-    "model": "events.EventCategory",
+    "model": "events.EventSubCategory",
     "pk": 12,
     "fields": {
       "title": "Recommended",
-      "title_heb": "מומלצים"
+      "title_heb": "מומלצים",
+      "category": 5
     }
   },
   {
-    "model": "events.EventCategory",
+    "model": "events.EventSubCategory",
     "pk": 13,
     "fields": {
       "title": "Literature & Enrichment",
-      "title_heb": "ספרות והעשרה"
+      "title_heb": "ספרות והעשרה",
+      "category": 5
     }
   },
   {
-    "model": "events.EventCategory",
+    "model": "events.EventSubCategory",
     "pk": 14,
     "fields": {
       "title": "Bars & Alcohol",
-      "title_heb": "בארים ואלכוהול"
+      "title_heb": "בארים ואלכוהול",
+      "category": 4
     }
   },
   {
-    "model": "events.EventCategory",
+    "model": "events.EventSubCategory",
     "pk": 15,
     "fields": {
-      "title": "Standup & Nonsense",
-      "title_heb": "סטנדאפ ונונסנס"
+      "title": "Standup & Laughs",
+      "title_heb": "סטנדאפ ונונסנס",
+      "category": 6
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 16,
+    "fields": {
+      "title": "Clubs",
+      "title_heb": "מועדונים",
+      "category": 7
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 17,
+    "fields": {
+      "title": "Sports Events",
+      "title_heb": "אירועי ספורט",
+      "category": 1
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 18,
+    "fields": {
+      "title": "Sports Activities",
+      "title_heb": "פעילויות ספורט",
+      "category": 1
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 19,
+    "fields": {
+      "title": "Caffe",
+      "title_heb": "בתי קפה",
+      "category": 2
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 20,
+    "fields": {
+      "title": "Restaurants",
+      "title_heb": "מסעדות",
+      "category": 2
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 21,
+    "fields": {
+      "title": "Family",
+      "title_heb": "כל המשפחה",
+      "category": 3
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 22,
+    "fields": {
+      "title": "Kids",
+      "title_heb": "ילדים",
+      "category": 3
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 23,
+    "fields": {
+      "title": "Spa",
+      "title_heb": "ספא",
+      "category": 1
+    }
+  },
+  {
+    "model": "events.EventSubCategory",
+    "pk": 23,
+    "fields": {
+      "title": "Workshops",
+      "title_heb": "סדנאות",
+      "category": 5
     }
   }
 ]

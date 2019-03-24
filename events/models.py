@@ -21,6 +21,7 @@ class EventCategory(SortableMixin):
     image = models.ImageField(upload_to=event_category_media_path)
     enabled = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0, editable=False, db_index=True)
+    icon_name = models.CharField(max_length=10, null=True)
 
     def __str__(self):
         return self.title
@@ -52,7 +53,7 @@ class Venue(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
 
     def __str__(self):
-        return self.name + ' - ' + self.city
+        return self.name + ' - ' + self.city + '(' + self.name_heb + ' - ' + self.city_heb + ')'
 
 
 class Media(models.Model):
@@ -114,6 +115,9 @@ class Audience(models.Model):
     title_heb = models.CharField(db_index=True, max_length=50, null=True)
     icon = models.ImageField(upload_to=audiences_media_path, blank=True, null=True)
 
+    def __str__(self):
+        return self.title + ' - ' + self.title_heb or ''
+
 
 class Event(models.Model):
 
@@ -144,5 +148,5 @@ class Event(models.Model):
 
 
     def __str__(self):
-        return self.title #+ ' (' + self.category.title + ')' + ' - ' + self.venue.name
+        return str(self.id) + ' - ' + self.title + ', ' + self.title_heb
 
