@@ -57,7 +57,7 @@ DEFAULTS_FOR_SCRAPER = {'title': '',
 CSV_EVENTS_FIELDS = [
     'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'category_id', 'sub_categories_ids', 'audiences',
     'short_description', 'short_description_heb', 'description', 'description_heb', 'price', 'image_url', 'venue_name',
-    'venue_name_heb', 'venue_street_address', 'venue_street_addresss_heb', 'venue_city', 'venue_city_heb',
+    'venue_name_heb', 'venue_street_address', 'venue_street_address_heb', 'venue_city', 'venue_city_heb',
     'venue_phone_number',
     'venue_longitude', 'venue_latitude', 'venue_link']
 
@@ -80,8 +80,8 @@ def _events_category_to_csv(category):
                                                                                                   'start_time_str')
     new_events = []
     new_venues = []
-    existing_venues = Venue.objects.values_list('name_heb', flat=True)
-    for i, event_json in enumerate(events[:10]):
+    existing_venues = Venue.objects.values_list('name_heb', 'city_heb')
+    for i, event_json in enumerate(events):
         print('doing event' + str(i))
         parsed = {}
         parsed.update(DEFAULTS_FOR_SCRAPER)
@@ -105,10 +105,10 @@ def _events_category_to_csv(category):
                 event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
         else:
             new_events.append(
-                ','.join(['"' + (parsed.get(field, '') or '').replace('"', '""') + '"' for field in CSV_EVENTS_FIELDS]))
-            if parsed['venue_name_heb'] not in existing_venues or True:
+                ','.join(['"' + (parsed.get(field, '') or '').replace('"', '""').strip() + '"' for field in CSV_EVENTS_FIELDS]))
+            if (parsed['venue_name_heb'], parsed['venue_city_heb']) not in existing_venues:
                 new_venues.append(
-                    ','.join(['"' + parsed.get('venue_' + field, '').replace('"', '""') + '"' for field in
+                    ','.join(['"' + parsed.get('venue_' + field, '').replace('"', '""').strip() + '"' for field in
                               CSV_VENUES_FIELDS]))
 
     return new_events, set(new_venues)
