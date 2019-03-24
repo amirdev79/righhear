@@ -144,5 +144,5 @@ class Event(models.Model):
 
 
     def __str__(self):
-        return self.title #+ ' (' + self.category.title + ')' + ' - ' + self.venue.name
+        return str(self.id) + ' - ' + self.title + ', ' + self.title_heb
 

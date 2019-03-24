@@ -96,7 +96,7 @@ def _events_category_to_csv(category):
         else:
             event_start_datetime = db_format_datetime = None
 
-        event_cmp_fields = parsed.get('title_heb').strip(), db_format_datetime
+        event_cmp_fields = parsed.get('title_heb').strip()[:50], db_format_datetime
         if event_cmp_fields in existing_events_cmp_fields:
             print('event %s - %s is already in DB. excluding from csv...' % (
                 event_cmp_fields[0], event_cmp_fields[1]))
@@ -265,30 +265,30 @@ def events_csv_to_db_objects(csv_path):
     with open(csv_path, 'rt') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for scraper_username, title, title_heb, start_time, end_time, category_id, sub_categories, audiences, short_description, short_description_heb, description, description_heb, price, image_url, venue_name, venue_name_heb, venue_street_address, venue_street_addresss_heb, venue_city, venue_city_heb, venue_phone_number, venue_longitude, venue_latitude, venue_link in reader:
-            # print ('scraper_username: ' + scraper_username)
-            # print('title:' + title)
-            # print('title_heb: ' + title_heb)
-            # print('start_time: ' + start_time)
-            # print('end_time: '  + end_time)
-            # print('category_id: ' + category_id)
-            # print('sub_categories:' + sub_categories)
-            # print('audiences: ' + audiences)
-            # print('short_description: ' + short_description)
-            # print('short_description_heb: ' + short_description_heb)
-            # print('description: ' + description)
-            # print('description_heb: '+ description_heb)
-            # print('price: ' + price)
-            # print('image_url: ' + image_url)
-            # print('venue_name: ' + venue_name)
-            # print('venue_name_heb: '+ venue_name_heb)
-            # print('venue_street_address: ' + venue_street_address)
-            # print('venue_street_addresss_heb: ' + venue_street_addresss_heb)
-            # print('venue_city: ' + venue_city)
-            # print('venue_city_heb: ' + venue_city_heb)
-            # print('venue_phone_number: ' + venue_phone_number)
-            # print('venue_longitude: ' + venue_longitude)
-            # print('venue_latitude: ' + venue_latitude)
-            # print('venue_link: ' + venue_link)
+            print ('scraper_username: ' + scraper_username)
+            print('title:' + title)
+            print('title_heb: ' + title_heb)
+            print('start_time: ' + start_time)
+            print('end_time: '  + end_time)
+            print('category_id: ' + category_id)
+            print('sub_categories:' + sub_categories)
+            print('audiences: ' + audiences)
+            print('short_description: ' + short_description)
+            print('short_description_heb: ' + short_description_heb)
+            print('description: ' + description)
+            print('description_heb: '+ description_heb)
+            print('price: ' + price)
+            print('image_url: ' + image_url)
+            print('venue_name: ' + venue_name)
+            print('venue_name_heb: '+ venue_name_heb)
+            print('venue_street_address: ' + venue_street_address)
+            print('venue_street_addresss_heb: ' + venue_street_addresss_heb)
+            print('venue_city: ' + venue_city)
+            print('venue_city_heb: ' + venue_city_heb)
+            print('venue_phone_number: ' + venue_phone_number)
+            print('venue_longitude: ' + venue_longitude)
+            print('venue_latitude: ' + venue_latitude)
+            print('venue_link: ' + venue_link)
             if reader.line_num == 1:
                 continue
 
