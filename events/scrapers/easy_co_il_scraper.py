@@ -114,10 +114,11 @@ def _events_category_to_csv(category):
     return new_events, set(new_venues)
 
 
-def events_to_csv(categories):
+def events_to_csv(categories=None):
     new_events = [','.join(CSV_EVENTS_FIELDS)]
     new_venues = [','.join(CSV_VENUES_FIELDS)]
-    for category in categories or ['music', 'standup', 'theater']:
+    for category in categories or SCRAPER_CATEGORIES.keys():
+        print ('Doing category: ' + category)
         new_events_for_cateogry, new_venues_for_cateogry = _events_category_to_csv(category)
         new_events += new_events_for_cateogry
         new_venues += new_venues_for_cateogry
