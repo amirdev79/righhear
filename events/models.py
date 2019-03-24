@@ -53,7 +53,7 @@ class Venue(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
 
     def __str__(self):
-        return self.name + ' - ' + self.city
+        return self.name + ' - ' + self.city + '(' + self.name_heb + ' - ' + self.city_heb + ')'
 
 
 class Media(models.Model):
@@ -144,5 +144,5 @@ class Event(models.Model):
 
 
     def __str__(self):
-        return self.title #+ ' (' + self.category.title + ')' + ' - ' + self.venue.name
+        return str(self.id) + ' - ' + self.title + ', ' + self.title_heb
 
