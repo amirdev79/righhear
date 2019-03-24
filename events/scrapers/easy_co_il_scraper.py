@@ -81,10 +81,11 @@ def _events_category_to_csv(category):
     new_events = []
     new_venues = []
     existing_venues = Venue.objects.values_list('name_heb', flat=True)
-    for i, event_json in enumerate(events):
+    for i, event_json in enumerate(events[:10]):
         print('doing event' + str(i))
-        parsed = _parse_event(event_json, category)
+        parsed = {}
         parsed.update(DEFAULTS_FOR_SCRAPER)
+        parsed.update(_parse_event(event_json, category))
         parsed['category_id'] = str(cat_metadata.get('admin_id'))
         parsed['sub_categories_ids'] = str(cat_metadata.get('sub_category_admin_id')).replace('[','').replace(']','')
 
@@ -105,7 +106,7 @@ def _events_category_to_csv(category):
         else:
             new_events.append(
                 ','.join(['"' + (parsed.get(field, '') or '').replace('"', '""') + '"' for field in CSV_EVENTS_FIELDS]))
-            if parsed['venue_name_heb'] not in existing_venues:
+            if parsed['venue_name_heb'] not in existing_venues or True:
                 new_venues.append(
                     ','.join(['"' + parsed.get('venue_' + field, '').replace('"', '""') + '"' for field in
                               CSV_VENUES_FIELDS]))
@@ -122,7 +123,7 @@ def events_to_csv(categories):
         new_venues += new_venues_for_cateogry
 
     email = EmailMessage(
-        'Easy.co.il Events scraper',
+        'Easy.co.il Events scraper. categories: ' + str(categories),
         'See attached CSV. please update the fields: title, description, short description (non hebrew ones)\nDo not touch the venue fields!',
         'righthearil@gmail.com',
         ['righthearil@gmail.com'],
@@ -214,7 +215,6 @@ def _parse_event(event_json, category):
         gmaps_address = get_gmaps_info(venue_name)
         if gmaps_address:
             print (str(gmaps_address))
-            print(str(event))
             address_arr = gmaps_address['formatted_address'].split(',')
             if len(address_arr) == 4:
                 event['venue_street_address'] = address_arr[1]
@@ -222,7 +222,6 @@ def _parse_event(event_json, category):
             elif len(address_arr) == 3:
                 event['venue_street_address'] = address_arr[0]
                 event['venue_city'] = address_arr[1]
-
             elif len(address_arr) == 2:
                 event['venue_street_address'] = address_arr[0]
                 event['venue_city'] = address_arr[0]
@@ -238,6 +237,7 @@ def _parse_event(event_json, category):
     # event['venue_longitude'] = str(gmaps_address['lng']) if gmaps_address else event_json.get('lng')
     # event['venue_latitude'] = str(gmaps_address['lat']) if gmaps_address else event_json.get('lat')
     event['price'] = _get_price(event_json)
+    print(str(event))
     return event
 
 
