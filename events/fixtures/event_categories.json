@@ -12,7 +12,7 @@
     "model": "events.EventCategory",
     "pk": 1,
     "fields": {
-      "title": "זLifestyle & Sports",
+      "title": "Lifestyle & Sports",
       "title_heb": "בריאות וספורט",
       "icon_name": "lifestyle"
     }
