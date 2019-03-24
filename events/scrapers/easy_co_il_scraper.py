@@ -15,44 +15,55 @@ from events.utils import get_gmaps_info
 from righthear import settings
 from users.models import UserProfile
 
-
 SCRAPER_CATEGORIES = {
-    'music': {'easy_id': 5818, 'admin_id': 0, 'default_image': ImageFile(open("static/images/events/categories_defauls/music_default.jpg", "rb"))},
-    'bars': {'easy_id': 424, 'admin_id': 14, 'default_image': ImageFile(open("static/images/events/categories_defauls/bars_default.jpeg", "rb"))},
-    'theater': {'easy_id': 12877, 'admin_id': 8, 'default_image':None},
-    'standup': {'easy_id': 12879, 'admin_id': 15, 'default_image': None},
+    'music': {'easy_id': 5818, 'admin_id': 0, 'sub_category_admin_id': [0],
+              'default_image': ImageFile(open("static/images/events/categories_defauls/music_default.jpg", "rb"))},
+    'bars': {'easy_id': 424, 'admin_id': 4, 'sub_category_admin_id': [14],
+             'default_image': ImageFile(open("static/images/events/categories_defauls/bars_default.jpeg", "rb"))},
+    'theater': {'easy_id': 12877, 'admin_id': 5, 'sub_category_admin_id': [8], 'default_image': None},
+    'standup': {'easy_id': 12879, 'admin_id': 6, 'sub_category_admin_id': [15], 'default_image': None},
+    'movies': {'easy_id': 12953, 'admin_id': 5, 'sub_category_admin_id': [4], 'default_image': None},
+    'clubs': {'easy_id': 14527, 'admin_id': 7, 'sub_category_admin_id': [16], 'default_image': None},
+    'sports_events': {'easy_id': 15184, 'admin_id': 1, 'sub_category_admin_id': [17], 'default_image': None},
+    'sports_activities': {'easy_id': 4917, 'admin_id': 1, 'sub_category_admin_id': [18], 'default_image': None},
+    'cafes': {'easy_id': 425, 'admin_id': 2, 'sub_category_admin_id': [19], 'default_image': None},
+    'restaurants': {'easy_id': 20015, 'admin_id': 2, 'sub_category_admin_id': [20], 'default_image': None},
+    'family': {'easy_id': 21923, 'admin_id': 3, 'sub_category_admin_id': [21,22], 'default_image': None},
+    'spa': {'easy_id': 1585, 'admin_id': 1, 'sub_category_admin_id': [23], 'default_image': None},
+    'workshops': {'easy_id': 4920, 'admin_id': 5, 'sub_category_admin_id': [24], 'default_image': None},
 }
+
 now = datetime.datetime.now()
 tomorrow = datetime.date.today() + datetime.timedelta(days=1)
 easy_scraper_user = UserProfile.objects.get(user__username=settings.EASY_CO_IL_USERNAME)
 
 DEFAULTS_FOR_SCRAPER = {'title': '',
-                        'description': '' ,
+                        'description': '',
                         'scraper_username': settings.EASY_CO_IL_USERNAME,
-                        'sub_categories': '' ,
+                        'sub_categories': '',
                         'short_description': '',
-                        'short_description_heb': '' ,
+                        'short_description_heb': '',
                         'description': '',
                         'description_heb': '',
                         'image_url': '',
                         'venue_name': '',
                         'venue_street_address_heb': '',
-                        'venue_city': '' ,
-                        'venue_link':  '',
-                        'end_time':  '',
+                        'venue_city': '',
+                        'venue_link': '',
+                        'end_time': '',
                         'audiences': '',
                         }
 
 CSV_EVENTS_FIELDS = [
-    'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'category_id', 'sub_categories', 'audiences',
+    'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'category_id', 'sub_categories_ids', 'audiences',
     'short_description', 'short_description_heb', 'description', 'description_heb', 'price', 'image_url', 'venue_name',
     'venue_name_heb', 'venue_street_address', 'venue_street_addresss_heb', 'venue_city', 'venue_city_heb',
     'venue_phone_number',
     'venue_longitude', 'venue_latitude', 'venue_link']
 
-
 CSV_VENUES_FIELDS = [
-    'name', 'name_heb', 'street_address', 'street_address_heb', 'city', 'city_heb', 'phone_number', 'longitude', 'latitude', 'link'
+    'name', 'name_heb', 'street_address', 'street_address_heb', 'city', 'city_heb', 'phone_number', 'longitude',
+    'latitude', 'link'
 ]
 
 
@@ -71,38 +82,44 @@ def _events_category_to_csv(category):
     new_venues = []
     existing_venues = Venue.objects.values_list('name_heb', flat=True)
     for i, event_json in enumerate(events):
-        print('doing event'  + str(i))
-        parsed = _parse_event(event_json)
+        print('doing event' + str(i))
+        parsed = _parse_event(event_json, category)
         parsed.update(DEFAULTS_FOR_SCRAPER)
         parsed['category_id'] = str(cat_metadata.get('admin_id'))
+        parsed['sub_categories_ids'] = str(cat_metadata.get('sub_category_admin_id')).replace('[','').replace(']','')
 
-        event_start_datetime = _to_datetime(parsed.get('start_time'))
-        db_format_datetime = event_start_datetime.strftime('%Y-%m-%d %H:%M:%S')
+        parsed_start_time = parsed.get('start_time')
+        if parsed_start_time:
+            event_start_datetime = _to_datetime(parsed.get('start_time'))
+            db_format_datetime = event_start_datetime.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            event_start_datetime = db_format_datetime = None
+
         event_cmp_fields = parsed.get('title_heb'), db_format_datetime
         if event_cmp_fields in existing_events_cmp_fields:
             print('event %s - %s is already in DB. excluding from csv...' % (
                 event_cmp_fields[0], event_cmp_fields[1]))
-        elif event_start_datetime < datetime.datetime.now().astimezone():
+        elif event_start_datetime and event_start_datetime < datetime.datetime.now().astimezone():
             print('event %s - %s-%s time has passed. excluding from csv...' % (
                 event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
         else:
             new_events.append(
-                ','.join(['"' + parsed.get(field, '').replace('"', '""') + '"' for field in CSV_EVENTS_FIELDS]))
+                ','.join(['"' + (parsed.get(field, '') or '').replace('"', '""') + '"' for field in CSV_EVENTS_FIELDS]))
             if parsed['venue_name_heb'] not in existing_venues:
                 new_venues.append(
-                    ','.join(['"' + parsed.get('venue_' + field,'' ).replace('"', '""') + '"' for field in CSV_VENUES_FIELDS]))
+                    ','.join(['"' + parsed.get('venue_' + field, '').replace('"', '""') + '"' for field in
+                              CSV_VENUES_FIELDS]))
 
     return new_events, set(new_venues)
 
 
-def events_to_csv():
+def events_to_csv(categories):
     new_events = [','.join(CSV_EVENTS_FIELDS)]
     new_venues = [','.join(CSV_VENUES_FIELDS)]
-    for category in ['music', 'standup', 'theater']:
+    for category in categories or ['music', 'standup', 'theater']:
         new_events_for_cateogry, new_venues_for_cateogry = _events_category_to_csv(category)
         new_events += new_events_for_cateogry
         new_venues += new_venues_for_cateogry
-
 
     email = EmailMessage(
         'Easy.co.il Events scraper',
@@ -142,7 +159,7 @@ def get_events(category):
 def _get_start_time(event_json):
     # get datetime
     _date, _time = None, None
-    _datetime = event_json['openhours'].replace(' ב-', '|')
+    _datetime = event_json.get('openhours', 'סגור').replace(' ב-', '|')
     _datetime_arr = _datetime.split('|')
     if len(_datetime_arr) == 2:
         if _datetime_arr[0] == 'היום':
@@ -152,16 +169,18 @@ def _get_start_time(event_json):
         elif _datetime_arr[0].count('/') == 1:
             _datetime = _datetime_arr[0] + '/' + str(now.year) + '|' + _datetime_arr[1]
 
-        start_time = datetime.datetime.strptime(_datetime,'%d/%m/%Y|%H:%M').astimezone()
+        start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y|%H:%M').astimezone()
     elif _datetime == 'מחר':
         _datetime = '%s/%s/%s' % (tomorrow.day, tomorrow.month, tomorrow.year)
         start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y').astimezone()
     elif _datetime.count('/') == 1:
         start_time = datetime.datetime.strptime(_datetime + '/' + str(now.year), '%d/%m/%Y').astimezone()
+    elif _datetime in ['סגור', 'פתוח']:
+        start_time = None
     else:
         start_time = datetime.datetime.strptime(_datetime, '%d/%m/%Y').astimezone()
 
-    return start_time.strftime('%d.%m.%y, %H:%M')
+    return start_time.strftime('%d.%m.%y, %H:%M') if start_time else None
 
 
 def _get_price(event_json):
@@ -172,17 +191,52 @@ def _get_price(event_json):
         return ''
 
 
-def _parse_event(event_json):
+def _parse_event(event_json, category):
     event = {'title_heb': event_json['bizname'], 'start_time': _get_start_time(event_json),
              'venue_longitude': event_json['lng'], 'venue_latitude': event_json['lat'],
-             'venue_phone_number': event_json.get('phone', '' )}
-    venue_name, city = event_json.get('address').split(',')
-    event['venue_name_heb'] = venue_name
-    event['venue_city_heb'] = city
-    gmaps_address = get_gmaps_info(venue_name)
-    event['venue_street_address'] = gmaps_address['formatted_address'] if gmaps_address else event['address']
-    event['venue_longitude'] = str(gmaps_address['lng']) if gmaps_address else 0
-    event['venue_latitude'] = str(gmaps_address['lat']) if gmaps_address else 0
+             'venue_phone_number': event_json.get('phone', '')}
+
+    address = event_json.get('address').split(',')
+    if category in ['clubs', 'bars', 'sports_events', 'sports_activities', 'cafes', 'restaurants', 'family', 'spa', 'workshops']:
+        event['venue_name_heb'] = event_json['bizname']
+        if len(address) == 2:
+            event['venue_street_address_heb'] = address[0]
+            event['venue_city_heb'] = address[1]
+        else:
+            event['venue_street_address_heb'] = event['venue_city_heb'] = address[0]
+    else:
+        if len(address) == 2:
+            venue_name, city = address
+        else:
+            venue_name = city = address[0]
+        event['venue_name_heb'] = venue_name
+        event['venue_city_heb'] = city
+        gmaps_address = get_gmaps_info(venue_name)
+        if gmaps_address:
+            print (str(gmaps_address))
+            print(str(event))
+            address_arr = gmaps_address['formatted_address'].split(',')
+            if len(address_arr) == 4:
+                event['venue_street_address'] = address_arr[1]
+                event['venue_city'] = address_arr[2]
+            elif len(address_arr) == 3:
+                event['venue_street_address'] = address_arr[0]
+                event['venue_city'] = address_arr[1]
+
+            elif len(address_arr) == 2:
+                event['venue_street_address'] = address_arr[0]
+                event['venue_city'] = address_arr[0]
+        else:
+            event['venue_street_address'] = event_json['address']
+
+    # gmaps_address = get_gmaps_info(venue_name or city)
+    # event['venue_street_address'] = event_json.get('address')
+    # event['venue_longitude'] = event_json.get('lng')
+    # event['venue_latitude'] = event_json.get('lat')
+    # gmaps_address = get_gmaps_info(venue_name or city)
+    # event['venue_street_address'] = gmaps_address['formatted_address'] if gmaps_address else event_json['address']
+    # event['venue_longitude'] = str(gmaps_address['lng']) if gmaps_address else event_json.get('lng')
+    # event['venue_latitude'] = str(gmaps_address['lat']) if gmaps_address else event_json.get('lat')
     event['price'] = _get_price(event_json)
     return event
 
@@ -194,12 +248,14 @@ def venues_csv_to_db_objects(csv_path):
         for name, name_heb, street_address, street_address_heb, city, city_heb, phone_number, longitude, latitude, link in reader:
             if reader.line_num == 1:
                 continue
-            defaults = {'name': name or name_heb, 'street_address': street_address, 'street_address_heb': street_address_heb, 'city': city, 'phone_number': phone_number, 'longitude': longitude, 'latitude': latitude, 'link': link}
+            defaults = {'name': name or name_heb, 'street_address': street_address,
+                        'street_address_heb': street_address_heb, 'city': city, 'phone_number': phone_number,
+                        'longitude': longitude, 'latitude': latitude, 'link': link}
             venue, created = Venue.objects.get_or_create(name_heb=name_heb, city_heb=city_heb, defaults=defaults)
             if created:
-                print ('created venue: ' + name + ', ' + name_heb)
+                print('created venue: ' + name + ', ' + name_heb)
             else:
-                print ('venue exists: ' + name + ', ' + name_heb)
+                print('venue exists: ' + name + ', ' + name_heb)
 
 
 def events_csv_to_db_objects(csv_path):
@@ -236,18 +292,22 @@ def events_csv_to_db_objects(csv_path):
 
             start_time = _to_datetime(start_time)
             try:
-                venue = Venue.objects.get(name_heb=venue_name_heb, city_heb = venue_city_heb)
-                defaults = {'title': title, 'short_description': short_description, 'short_description_heb': short_description_heb , 'description': description, 'description_heb': description_heb, 'venue': venue, 'price': price or None, 'created_by': easy_scraper_user}
-                event, created = Event.objects.get_or_create(title_heb=title_heb, start_time=start_time, defaults=defaults)
+                venue = Venue.objects.get(name_heb=venue_name_heb, city_heb=venue_city_heb)
+                defaults = {'title': title, 'short_description': short_description,
+                            'short_description_heb': short_description_heb, 'description': description,
+                            'description_heb': description_heb, 'venue': venue, 'price': price or None,
+                            'created_by': easy_scraper_user}
+                event, created = Event.objects.get_or_create(title_heb=title_heb, start_time=start_time,
+                                                             defaults=defaults)
                 if created:
                     event.categories.add(category_id)
                     if sub_categories:
                         event.sub_categories.add(*sub_categories.split(','))
-                    event.image = [cat for cat in SCRAPER_CATEGORIES.values() if cat['admin_id'] == int(category_id)][0].get('default_image')
+                    event.image = [cat for cat in SCRAPER_CATEGORIES.values() if cat['admin_id'] == int(category_id)][
+                        0].get('default_image')
                     event.save()
             except Exception as e:
-                print ('skipping event %s - error: %s' % (title_heb, str(e)))
-
+                print('skipping event %s - error: %s' % (title_heb, str(e)))
 
 # def _parse_bars_event(event_json):
 #     title = event_json[bizname]

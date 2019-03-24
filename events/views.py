@@ -94,7 +94,8 @@ def get_categories(request):
 
     categories_json = [{
         'id': cat.id,
-        'title': cat.title if is_heb else cat.title_heb,
+        'iconName': cat.icon_name,
+        'title': cat.title_heb if is_heb else cat.title,
         'image': request.build_absolute_uri(cat.image.url if cat.image else ''),
         'order': cat.order} for cat in categories]
 
