@@ -64,6 +64,8 @@ class UserSwipeAction(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
     event = models.ForeignKey('events.Event', on_delete=models.SET_NULL, null=True)
     action = models.IntegerField(choices=SWIPE_ACTION_CHOICES.items(), default=ACTION_LEFT)
+    lng =  models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
+    lat =  models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
 
     def __str__(self):
         return self.user.user.username + ', ' + str(self.event.id) + ', ' + self.SWIPE_ACTION_CHOICES[self.action]

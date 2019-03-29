@@ -8,7 +8,7 @@ class UserDeviceAdmin(admin.ModelAdmin):
 
 
 class UserSwipeActionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'event', 'action')
+    list_display = ('user', 'event', 'action', 'lng', 'lat')
 
 
 class UserProfileAdmin(admin.ModelAdmin):

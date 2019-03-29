@@ -37,9 +37,9 @@ def sign_in(request):
 @csrf_exempt
 @login_required
 def add_swipe_action(request):
-    event_id, action = parse_request(request, ['eventId', 'action'])
+    event_id, action, lat, lng = parse_request(request, ['eventId', 'action', 'lat', 'lng'])
     UserSwipeAction.objects.create(user=request.user.userprofile, event_id=event_id, action=action,
-                                   action_time=timezone.now())
+                                   action_time=timezone.now(), lat=lat, lng=lng)
     return HttpResponse()
 
 
