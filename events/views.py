@@ -56,7 +56,7 @@ def _events_to_json(request, events, up):
                    'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in
                   event.media.all()],
         'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,
-        'people': list(users_per_event.get(event.id, []))
+        'people': list(users_per_event.get(event.id, [])) + [8, 8]
 
     } for event in events]
 
@@ -94,7 +94,7 @@ def get_categories(request):
 
     categories_json = [{
         'id': cat.id,
-        'iconName': cat.icon_name,
+	'iconName': cat.icon_name,
         'title': cat.title_heb if is_heb else cat.title,
         'image': request.build_absolute_uri(cat.image.url if cat.image else ''),
         'order': cat.order} for cat in categories]
