@@ -56,6 +56,7 @@ def _events_to_json(request, events, up):
                    'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in
                   event.media.all()],
         'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,
+        'ticketsLink': event.tickets_link,
         'people': list(users_per_event.get(event.id, [])) + [8, 8]
 
     } for event in events]
