@@ -10,7 +10,7 @@ from django.core.mail import EmailMessage
 from django.db.models import DateTimeField, CharField, Q
 from django.db.models.functions import Cast, TruncSecond
 
-from events.models import Event, EventCategory, Venue
+from events.models import Event, EventCategory, Venue, Artist
 from events.utils import get_gmaps_info
 from righthear import settings
 from users.models import UserProfile
@@ -55,11 +55,11 @@ DEFAULTS_FOR_SCRAPER = {'title': '',
                         }
 
 CSV_EVENTS_FIELDS = [
-    'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'category_id', 'sub_categories_ids', 'audiences',
+    'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'artist_id', 'category_id', 'sub_categories_ids', 'audiences',
     'short_description', 'short_description_heb', 'description', 'description_heb', 'price', 'image_url', 'venue_name',
     'venue_name_heb', 'venue_street_address', 'venue_street_address_heb', 'venue_city', 'venue_city_heb',
     'venue_phone_number',
-    'venue_longitude', 'venue_latitude', 'venue_link']
+    'venue_longitude', 'venue_latitude', 'venue_link', 'tickets']
 
 CSV_VENUES_FIELDS = [
     'name', 'name_heb', 'street_address', 'street_address_heb', 'city', 'city_heb', 'phone_number', 'longitude',
@@ -69,6 +69,17 @@ CSV_VENUES_FIELDS = [
 
 def _to_datetime(datetime_str):
     return datetime.datetime.strptime(datetime_str, '%d.%m.%y, %H:%M').astimezone()
+
+
+def _get_event_page_info(url):
+    info = {}
+    page_id = url[url.rindex('/') + 1:]
+    url = 'https://easy.co.il/json/bizpage.json?p=' + page_id
+    response = requests.get(url)
+    event_json = response.json()['bizpage']
+    info['text'] = event_json['description']['text']
+    info['tickets_link'] = event_json['description']['link']['link']
+    return info
 
 
 def _events_category_to_csv(category):
@@ -82,35 +93,37 @@ def _events_category_to_csv(category):
     new_venues = []
     existing_venues = Venue.objects.values_list('name_heb', 'city_heb')
     for i, event_json in enumerate(events):
-        print('doing event' + str(i))
-        parsed = {}
-        parsed.update(DEFAULTS_FOR_SCRAPER)
-        parsed.update(_parse_event(event_json, category))
-        parsed['category_id'] = str(cat_metadata.get('admin_id'))
-        parsed['sub_categories_ids'] = str(cat_metadata.get('sub_category_admin_id')).replace('[','').replace(']','')
+        try:
+            print('doing event' + str(i))
+            parsed = {}
+            parsed.update(DEFAULTS_FOR_SCRAPER)
+            parsed.update(_parse_event(event_json, category))
+            parsed['category_id'] = str(cat_metadata.get('admin_id'))
+            parsed['sub_categories_ids'] = str(cat_metadata.get('sub_category_admin_id')).replace('[','').replace(']','')
+            parsed_start_time = parsed.get('start_time')
+            if parsed_start_time:
+                event_start_datetime = _to_datetime(parsed.get('start_time'))
+                db_format_datetime = event_start_datetime.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                event_start_datetime = db_format_datetime = None
 
-        parsed_start_time = parsed.get('start_time')
-        if parsed_start_time:
-            event_start_datetime = _to_datetime(parsed.get('start_time'))
-            db_format_datetime = event_start_datetime.strftime('%Y-%m-%d %H:%M:%S')
-        else:
-            event_start_datetime = db_format_datetime = None
-
-        event_cmp_fields = parsed.get('title_heb').strip()[:50], db_format_datetime
-        if event_cmp_fields in existing_events_cmp_fields:
-            print('event %s - %s is already in DB. excluding from csv...' % (
-                event_cmp_fields[0], event_cmp_fields[1]))
-        elif event_start_datetime and event_start_datetime < datetime.datetime.now().astimezone():
-            print('event %s - %s-%s time has passed. excluding from csv...' % (
-                event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
-        else:
-            print ('new event: ' + str(parsed) + ', cmp_fields: ' + str(event_cmp_fields))
-            new_events.append(
-                ','.join(['"' + (parsed.get(field, '') or '').replace('"', '""').strip() + '"' for field in CSV_EVENTS_FIELDS]))
-            if (parsed['venue_name_heb'].strip(), parsed['venue_city_heb'].strip()) not in existing_venues:
-                new_venues.append(
-                    ','.join(['"' + parsed.get('venue_' + field, '').replace('"', '""').strip() + '"' for field in
-                              CSV_VENUES_FIELDS]))
+            event_cmp_fields = parsed.get('title_heb').strip()[:50], db_format_datetime
+            if event_cmp_fields in existing_events_cmp_fields:
+                print('event %s - %s is already in DB. excluding from csv...' % (
+                    event_cmp_fields[0], event_cmp_fields[1]))
+            elif event_start_datetime and event_start_datetime < datetime.datetime.now().astimezone():
+                print('event %s - %s-%s time has passed. excluding from csv...' % (
+                    event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
+            else:
+                print ('new event: ' + str(parsed) + ', cmp_fields: ' + str(event_cmp_fields))
+                new_events.append(
+                    ','.join(['"' + (parsed.get(field, '') or '').replace('"', '""').strip() + '"' for field in CSV_EVENTS_FIELDS]))
+                if (parsed['venue_name_heb'].strip(), parsed['venue_city_heb'].strip()) not in existing_venues:
+                    new_venues.append(
+                        ','.join(['"' + parsed.get('venue_' + field, '').replace('"', '""').strip() + '"' for field in
+                                  CSV_VENUES_FIELDS]))
+        except Exception as e:
+            print ('*******************could not do event ' + str(event_json) + ': ' + str(e) + ' ******************')
 
     return new_events, set(new_venues)
 
@@ -240,6 +253,11 @@ def _parse_event(event_json, category):
     # event['venue_latitude'] = str(gmaps_address['lat']) if gmaps_address else event_json.get('lat')
     event['price'] = _get_price(event_json)
     # print(str(event))
+
+    if category in ['music', 'movies', 'standup', 'theater']:
+        additional_info = _get_event_page_info(event_json['url'])
+        event['tickets'] = additional_info['tickets_link']
+        event['description_heb'] = additional_info['text']
     return event
 
 
@@ -264,12 +282,13 @@ def events_csv_to_db_objects(csv_path):
     # csv_path = '/home/amir/Downloads/tmpstc4gl24.csv'
     with open(csv_path, 'rt') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        for scraper_username, title, title_heb, start_time, end_time, category_id, sub_categories, audiences, short_description, short_description_heb, description, description_heb, price, image_url, venue_name, venue_name_heb, venue_street_address, venue_street_addresss_heb, venue_city, venue_city_heb, venue_phone_number, venue_longitude, venue_latitude, venue_link in reader:
+        for scraper_username, title, title_heb, start_time, end_time, artist_id, category_id, sub_categories, audiences, short_description, short_description_heb, description, description_heb, price, image_url, venue_name, venue_name_heb, venue_street_address, venue_street_addresss_heb, venue_city, venue_city_heb, venue_phone_number, venue_longitude, venue_latitude, venue_link, tickets_link in reader:
             print ('scraper_username: ' + scraper_username)
             print('title:' + title)
             print('title_heb: ' + title_heb)
             print('start_time: ' + start_time)
             print('end_time: '  + end_time)
+            print('artist_id: '  + artist_id)
             print('category_id: ' + category_id)
             print('sub_categories:' + sub_categories)
             print('audiences: ' + audiences)
@@ -289,6 +308,7 @@ def events_csv_to_db_objects(csv_path):
             print('venue_longitude: ' + venue_longitude)
             print('venue_latitude: ' + venue_latitude)
             print('venue_link: ' + venue_link)
+            print('tickets_link: ' + tickets_link)
             if reader.line_num == 1:
                 continue
 
@@ -301,10 +321,12 @@ def events_csv_to_db_objects(csv_path):
                 defaults = {'title': title, 'short_description': short_description,
                             'short_description_heb': short_description_heb, 'description': description,
                             'description_heb': description_heb, 'venue': venue, 'price': price or None,
-                            'created_by': easy_scraper_user}
+                            'created_by': easy_scraper_user, 'tickets_link': tickets_link}
                 event, created = Event.objects.get_or_create(title_heb=title_heb, start_time=start_time,
                                                              defaults=defaults)
                 if created:
+                    if artist_id:
+                        event.artist = Artist.objects.get(id=artist_id)
                     event.categories.add(category_id)
                     if sub_categories:
                         event.sub_categories.add(*sub_categories.split(','))

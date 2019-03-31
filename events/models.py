@@ -84,7 +84,7 @@ class Media(models.Model):
 
 
     def __str__(self):
-        return self.link[self.link.rfind('/')+1:] + ' (' +self.type + ')'
+        return self.link + ' (' +self.type + ')'
 
 
 class Artist(models.Model):
@@ -141,7 +141,7 @@ class Event(models.Model):
     image = models.ImageField(upload_to=events_media_path, blank=True)
     audiences = models.ManyToManyField(Audience)
     rating = models.IntegerField(default=0)
-
+    tickets_link =  models.URLField(blank=True)
 
     def __str__(self):
         return str(self.id) + ' - ' + self.title + ', ' + self.title_heb
