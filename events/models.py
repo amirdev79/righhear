@@ -144,5 +144,5 @@ class Event(models.Model):
     tickets_link =  models.URLField(blank=True)
 
     def __str__(self):
-        return str(self.id) + ' - ' + self.title + ', ' + self.title_heb
+        return str(self.id) + ' - ' + self.title or '' + ', ' + self.title_heb or ''
 
