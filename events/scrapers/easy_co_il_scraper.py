@@ -140,8 +140,8 @@ def events_to_csv(categories=None):
     email = EmailMessage(
         'Easy.co.il Events scraper. categories: ' + str(categories),
         'See attached CSV. please update the fields: title, description, short description (non hebrew ones)\nDo not touch the venue fields!',
-        'righthearil@gmail.com',
-        ['righthearil@gmail.com'],
+        settings.DEFAULT_EMAIL,
+        [settings.DEFAULT_EMAIL],
     )
 
     events_csv_file = tempfile.NamedTemporaryFile(suffix='.csv')
