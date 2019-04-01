@@ -1,7 +1,7 @@
 from events.models import Artist
 
 MEDIA_URL = 'http://35.196.96.207'
-ARTIST_CSV_HEADER = 'id, First Name, Last Name, Image, Category, Sub Categories, Media1, Media2, Media3'
+ARTIST_CSV_HEADER = 'id, First Name, Last Name, Image, Category, Sub Categories, media1 link, media1 start seconds, media1 end seconds, media2 link, media2 start seconds, media1 end seconds, media3 link, media3 start seconds, media3 end seconds'
 
 
 def _cat_to_string(cat):

@@ -3,11 +3,12 @@ import json
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.mail import EmailMessage
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from users.models import UserProfile, UserSwipeAction
+from users.models import UserProfile, UserSwipeAction, UserMessage
 from users.utils import up_to_json, update_device_info, update_user_fb_data
 from utils.network import parse_request
 
@@ -80,6 +81,25 @@ def sign_in_with_facebook(request):
     update_user_fb_data(up)
     up_json = up_to_json(up, request)
     return JsonResponse(up_json)
+
+
+@csrf_exempt
+@login_required
+def add_user_message(request):
+    up = request.user.userprofile
+    type, text, lat, lng = parse_request(request, ['type','text', 'lng', 'lat'])
+    UserMessage.objects.create(user=up, type=type, text=text, lat=lat, lng=lng)
+
+    email = EmailMessage(
+        'New User Message Received (' + UserMessage.MESSAGE_TYPE_CHOICES.get(int(type)) + '):',
+        'user: ' + str(up) + '\n\n' + text,
+        'righthearil@gmail.com',
+        ['righthearil@gmail.com'],
+    )
+
+    email.send()
+
+    return HttpResponse();
 
 # EAAEiQAK1MRkBADqY2omBDG0fRQZBJ4f0qAWKXuXfL6ZAacxbEbUd4OBT5Br9MiCsyJQQes5ETdczttOd6G59owxozian0FO8UdeQaytgbeW7ZAW8PjZAkc2dkrs1y4R5QNLGXoSynt7AkzW5Ts5wuxhSfGswYi4w9CjZCoyFOVEkvl67qWU0kvVO5MWQXBmkZAR7t2zYO4mwZDZD
 # 10155722070191599

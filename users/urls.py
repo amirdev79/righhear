@@ -9,4 +9,5 @@ urlpatterns = [
     path('add_swipe_action/', views.add_swipe_action, name='add_swipe_action'),
     path('update_user_profile/', views.update_user_profile, name='update_user_profile'),
     path('landing_page/', views.landing_page, name='landing_page'),
+    path('add_user_message/', views.add_user_message, name='add_user_message'),
 ]

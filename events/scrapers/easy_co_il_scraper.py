@@ -140,8 +140,8 @@ def events_to_csv(categories=None):
     email = EmailMessage(
         'Easy.co.il Events scraper. categories: ' + str(categories),
         'See attached CSV. please update the fields: title, description, short description (non hebrew ones)\nDo not touch the venue fields!',
-        'righthearil@gmail.com',
-        ['righthearil@gmail.com'],
+        settings.DEFAULT_EMAIL,
+        [settings.DEFAULT_EMAIL],
     )
 
     events_csv_file = tempfile.NamedTemporaryFile(suffix='.csv')
@@ -326,7 +326,7 @@ def events_csv_to_db_objects(csv_path):
                                                              defaults=defaults)
                 if created:
                     if artist_id:
-                        event.artist = Artist.objects.get(id=artist_id)
+                        event.artist = Artist.objects.get(id=int(artist_id))
                     event.categories.add(category_id)
                     if sub_categories:
                         event.sub_categories.add(*sub_categories.split(','))

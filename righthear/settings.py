@@ -148,6 +148,8 @@ EMAIL_HOST_USER = 'righthearil@gmail.com'
 EMAIL_HOST_PASSWORD = '!Z2x3c$V'
 EMAIL_PORT = 587
 
+DEFAULT_EMAIL = 'righthearil@gmail.com'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
