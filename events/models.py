@@ -82,7 +82,6 @@ class Media(models.Model):
     link = models.URLField(blank=True)
     thumbnail = models.ImageField(upload_to=thumbnail_media_path, blank=True)
 
-
     def __str__(self):
         return self.link + ' (' +self.type + ')'
 

@@ -326,7 +326,7 @@ def events_csv_to_db_objects(csv_path):
                                                              defaults=defaults)
                 if created:
                     if artist_id:
-                        event.artist = Artist.objects.get(id=artist_id)
+                        event.artist = Artist.objects.get(id=int(artist_id))
                     event.categories.add(category_id)
                     if sub_categories:
                         event.sub_categories.add(*sub_categories.split(','))
