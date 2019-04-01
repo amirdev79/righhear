@@ -64,6 +64,8 @@ class UserSwipeAction(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
     event = models.ForeignKey('events.Event', on_delete=models.SET_NULL, null=True)
     action = models.IntegerField(choices=SWIPE_ACTION_CHOICES.items(), default=ACTION_LEFT)
+    lng = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
+    lat = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
 
     def __str__(self):
         return self.user.user.username + ', ' + str(self.event.id) + ', ' + self.SWIPE_ACTION_CHOICES[self.action]
@@ -82,7 +84,26 @@ class UserRelations(models.Model):
     }
 
     relating_user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='user_relations_relating')
-    related_user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, related_name='user_relations_related')
+    related_user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True,
+                                     related_name='user_relations_related')
     relation = models.IntegerField(choices=RELATION_CHOICES.items(), default=RELATION_FRIEND)
     state = models.IntegerField(choices=STATE_CHOICES.items(), default=STATE_PENDING)
     meta_data = JSONField(null=True, blank=True, editable=False)
+
+
+class UserMessage(models.Model):
+    TYPE_ADD_EVENT, TYPE_FEEDBACK, TYPE_CONTACT = range(3)
+    MESSAGE_TYPE_CHOICES = {
+        TYPE_ADD_EVENT: "Add Event",
+        TYPE_FEEDBACK: "Feedback",
+        TYPE_CONTACT: "Contact",
+    }
+
+    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
+    type = models.IntegerField(choices=MESSAGE_TYPE_CHOICES.items(), default=TYPE_FEEDBACK)
+    text = models.CharField(max_length=1000, blank=True)
+    lng = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
+    lat = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
+
+    def __str(self):
+        return self.text

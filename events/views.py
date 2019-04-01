@@ -8,9 +8,11 @@ from django.views.decorators.csrf import csrf_exempt
 from events.models import Event, EventCategory
 from events.utils import get_event_image
 from users.models import UserSwipeAction
+from utils.network import parse_request
 
 RELATED_USER_FIELDS = ['related_user__id', 'related_user__user__first_name',
                        'related_user__user_data__fb_profile_image_normal']
+
 
 def index(request):
     return HttpResponse("Welcome right Hear :)")
@@ -56,6 +58,7 @@ def _events_to_json(request, events, up):
                    'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in
                   event.media.all()],
         'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,
+        'ticketsLink': event.tickets_link,
         'people': list(users_per_event.get(event.id, [])) + [8, 8]
 
     } for event in events]
@@ -94,9 +97,10 @@ def get_categories(request):
 
     categories_json = [{
         'id': cat.id,
-	'iconName': cat.icon_name,
+        'iconName': cat.icon_name,
         'title': cat.title_heb if is_heb else cat.title,
         'image': request.build_absolute_uri(cat.image.url if cat.image else ''),
         'order': cat.order} for cat in categories]
 
     return JsonResponse(categories_json, safe=False)
+

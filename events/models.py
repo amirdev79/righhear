@@ -53,7 +53,7 @@ class Venue(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
 
     def __str__(self):
-        return self.name + ' - ' + self.city + '(' + self.name_heb + ' - ' + self.city_heb + ')'
+        return self.name + ' - ' + self.city or '' + '(' + self.name_heb or '' + ' - ' + self.city_heb or '' + ')'
 
 
 class Media(models.Model):
@@ -86,9 +86,8 @@ class Media(models.Model):
     playback_start = models.IntegerField(blank=True, null=True)
     playback_end = models.IntegerField(blank=True, null=True)
 
-
     def __str__(self):
-        return self.link[self.link.rfind('/')+1:] + ' (' +self.type + ')'
+        return self.link + ' (' +self.type + ')'
 
 
 class Artist(models.Model):
@@ -145,8 +144,8 @@ class Event(models.Model):
     image = models.ImageField(upload_to=events_media_path, blank=True)
     audiences = models.ManyToManyField(Audience)
     rating = models.IntegerField(default=0)
-
+    tickets_link =  models.URLField(blank=True)
 
     def __str__(self):
-        return str(self.id) + ' - ' + self.title + ', ' + self.title_heb
+        return str(self.id) + ' - ' + self.title or '' + ', ' + self.title_heb or ''
 
