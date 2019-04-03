@@ -145,7 +145,7 @@ TLV_SCRAPER_USERNAME = 'tlv_scraper'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_HOST_USER = 'righthearil@gmail.com'
-EMAIL_HOST_PASSWORD = '!Z2x3c$V'
+EMAIL_HOST_PASSWORD = 'Z12xc34V'
 EMAIL_PORT = 587
 
 DEFAULT_EMAIL = 'righthearil@gmail.com'
