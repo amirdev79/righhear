@@ -99,9 +99,9 @@ class UserMessage(models.Model):
         TYPE_CONTACT: "Contact",
     }
 
-    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
-    type = models.IntegerField(choices=MESSAGE_TYPE_CHOICES.items(), default=TYPE_FEEDBACK)
-    text = models.CharField(max_length=1000, blank=True)
+    user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, editable=False)
+    type = models.IntegerField(choices=MESSAGE_TYPE_CHOICES.items(), default=TYPE_FEEDBACK, editable=False)
+    text = models.CharField(max_length=1000, blank=True, editable=False)
     lng = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
     lat = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
 
