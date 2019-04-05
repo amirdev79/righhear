@@ -37,7 +37,7 @@ def _get_artist_image_str(artist):
 
 def _get_artist_csv_line(artist):
     image = _get_artist_image_str(artist)
-    category = artist.category.id or ''
+    category = artist.category.id if artist.category else ''
     sub_categories = artist.sub_categories.values_list('id', flat=True) or ''
 
     fields = [str(artist.id), artist.first_name, artist.last_name, artist.first_name_heb, artist.last_name_heb, image,
