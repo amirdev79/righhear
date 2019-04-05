@@ -95,7 +95,9 @@ class Artist(models.Model):
         return 'artists/{0}/{1}'.format(instance.id if instance.id else 'new', filename)
 
     first_name = models.CharField(max_length=50)
+    first_name_heb = models.CharField(max_length=50, default='')
     last_name = models.CharField(max_length=50, null=True, blank=True)
+    last_name_heb = models.CharField(max_length=50, null=True, blank=True)
     image = models.ImageField(upload_to=artist_media_path, blank=True)
     category = models.ForeignKey(EventCategory, on_delete=models.SET_NULL, null=True)
     sub_categories = models.ManyToManyField(EventSubCategory)
