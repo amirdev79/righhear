@@ -80,14 +80,14 @@ class Media(models.Model):
     created_by = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True)
     type = models.CharField(max_length=3, choices=MEDIA_TYPE_CHOICES.items(), default=TYPE_IMAGE)
     source = models.CharField(max_length=10, choices=MEDIA_SOURCE_CHOICES.items(), default=SOURCE_EVENT)
-    link = models.URLField(blank=True)
+    link = models.URLField(blank=True, null=True)
     thumbnail = models.ImageField(upload_to=thumbnail_media_path, blank=True)
     youtube_id = models.CharField(max_length=20, null=True, blank=True)
     playback_start = models.IntegerField(blank=True, null=True)
     playback_end = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
-        return self.link + ' (' +self.type + ')'
+        return self.link or self.youtube_id + ' (' +self.type + ')'
 
 
 class Artist(models.Model):
