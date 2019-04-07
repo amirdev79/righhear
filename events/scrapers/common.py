@@ -3,7 +3,7 @@ import csv
 from events.models import Artist, Media, EventCategory
 
 MEDIA_URL = 'http://35.196.96.207'
-ARTIST_CSV_HEADER = 'id (-), first_name, last_name, first_name_heb, last_name_heb, category_id, sub_categories_ids, media1_id , ' \
+ARTIST_CSV_HEADER = 'id (-), first_name, last_name (leave empty if not relevant), first_name_heb, last_name_heb (leave empty if not relevant), category_id, sub_categories_ids, media1_id , ' \
                     'media1_type, media1_link, media1_playback_start, media1_playback_end, media2_id, media2_type, ' \
                     'media2_link, media2_playback_start, media2_playback_end, media3_id, media3_type, media3_link, ' \
                     'media3_playback_start, media3_playback_end '
@@ -43,7 +43,7 @@ def _get_artist_csv_line(artist):
     for media in artist.media.all():
         fields += _get_media_fields(media)
 
-    return ','.join(['"' + (val or '') + '"' for val in fields])
+    return ','.join(['"' + (str(val) or '') + '"' for val in fields])
 
 
 def artists_to_csv(csv_path):
