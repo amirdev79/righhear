@@ -13,7 +13,9 @@ from users.utils import up_to_json, update_device_info, update_user_fb_data
 from utils.network import parse_request
 
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 @csrf_exempt
 def sign_in(request):
@@ -74,7 +76,8 @@ def invite(request):
 def sign_in_with_facebook(request):
     fb_user_id, access_token = parse_request(request, ['userId', 'accessToken'])
     up = request.user.userprofile
-    logger.debug('up: ' + up.user.username + ', fb_user_id: ' + str(fb_user_id) + ', access_token: ' + str(access_token))
+    logger.debug(
+        'up: ' + up.user.username + ', fb_user_id: ' + str(fb_user_id) + ', access_token: ' + str(access_token))
     up.fb_id = fb_user_id
     up.fb_access_token = access_token
     up.save()
@@ -83,16 +86,23 @@ def sign_in_with_facebook(request):
     return JsonResponse(up_json)
 
 
+def _format_user_message_email(um):
+    return 'User Details: \nid: %s\nusername: %s\nmessage name: %s\nmessage email: %s\nmessage phone: %s\n\n %s' % (
+    um.user.id, um.user.user.username, um.name, um.email, um.phone, um.text)
+
+
 @csrf_exempt
 @login_required
 def add_user_message(request):
     up = request.user.userprofile
-    type, name, email, phone, text, lat, lng = parse_request(request, ['type','name', 'email', 'phone', 'text', 'lng', 'lat'])
-    UserMessage.objects.create(user=up, type=type, name=name, email=email, phone=phone, text=text, lat=lat, lng=lng)
+    type, name, email, phone, text, lat, lng = parse_request(request,
+                                                             ['type', 'name', 'email', 'phone', 'text', 'lng', 'lat'])
+    um = UserMessage.objects.create(user=up, type=type, name=name, email=email, phone=phone, text=text, lat=lat,
+                                    lng=lng)
 
     email = EmailMessage(
-        'New User Message Received (' + UserMessage.MESSAGE_TYPE_CHOICES.get(int(type)) + '):',
-        'user: ' + str(up) + '\n\n' + text,
+        'New User Message Received (' + UserMessage.MESSAGE_TYPE_CHOICES.get(int(um.type)) + '):',
+        _format_user_message_email(um),
         'righthearil@gmail.com',
         ['righthearil@gmail.com'],
     )
