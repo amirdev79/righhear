@@ -101,9 +101,12 @@ class UserMessage(models.Model):
 
     user = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, editable=False)
     type = models.IntegerField(choices=MESSAGE_TYPE_CHOICES.items(), default=TYPE_FEEDBACK, editable=False)
+    name = models.CharField(max_length=100, blank=True, editable=False, null=True)
+    email = models.CharField(max_length=100, blank=True, editable=False, null=True)
+    phone = models.CharField(max_length=100, blank=True, editable=False, null=True)
     text = models.CharField(max_length=1000, blank=True, editable=False)
     lng = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
     lat = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
 
     def __str(self):
-        return self.text
+        return self.user.username + ': ' + self.text

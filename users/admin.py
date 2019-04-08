@@ -18,8 +18,11 @@ class UserProfileAdmin(admin.ModelAdmin):
 class UserDataAdmin(admin.ModelAdmin):
     list_display = ('user', 'fb_profile_image_small', 'fb_profile_image_normal', 'fb_profile_image_large')
 
+
 class UserMessageAdmin(admin.ModelAdmin):
-    list_display = ('user', 'type', 'text')
+    readonly_fields = 'type', 'name', 'email', 'phone', 'text'
+    list_display = ('user', 'type', 'name', 'email', 'phone', 'text')
+    list_filter = 'type',
 
 
 admin.site.register(UserProfile, UserProfileAdmin)

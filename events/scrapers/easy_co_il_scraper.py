@@ -10,7 +10,7 @@ from django.core.mail import EmailMessage
 from django.db.models import DateTimeField, CharField, Q
 from django.db.models.functions import Cast, TruncSecond
 
-from events.models import Event, EventCategory, Venue, Artist
+from events.models import Event, Venue, Artist
 from events.utils import get_gmaps_info
 from righthear import settings
 from users.models import UserProfile

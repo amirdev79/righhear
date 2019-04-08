@@ -8,7 +8,7 @@ ARTIST_CSV_HEADER = 'id (-), first_name, last_name (leave empty if not relevant)
                     'media2_link, media2_playback_start, media2_playback_end, media3_id, media3_type, media3_link, ' \
                     'media3_playback_start, media3_playback_end '
 
-ARTIST_FIELDS = ['id (do not touch)', 'first_name', 'last_name', 'first_name_heb', 'last_name_heb', 'image (do not touch)', 'category',
+ARTIST_FIELDS = ['id (do not touch)', 'first_name', 'last_name', 'first_name_heb', 'last_name_heb', 'image (do not touch)', 'image credits (do not touch)', 'category',
                  'sub_categories', 'media1 id (do not touch)', 'media1 type', 'media1 link/youtube id', 'media1 playback start',
                  'media1 playback end', 'media2 id (do not touch)', 'media2 type', 'media2 link/youtube id', 'media2 playback start',
                  'media2 playback end', 'media3 id (do not touch)', 'media3 type', 'media3 link/youtube id', 'media3 playback start',
@@ -38,7 +38,7 @@ def _get_artist_csv_line(artist):
     category = artist.category.id if artist.category else ''
     sub_categories = ','.join([str(id) for id in artist.sub_categories.values_list('id', flat=True) or []])
 
-    fields = [str(artist.id), artist.first_name, artist.last_name, artist.first_name_heb, artist.last_name_heb, image,
+    fields = [str(artist.id), artist.first_name, artist.last_name, artist.first_name_heb, artist.last_name_heb, image, artist.image_credits,
               str(category), sub_categories]
     for media in artist.media.all():
         fields += _get_media_fields(media)
@@ -157,7 +157,7 @@ def _update_artist_sub_categories(artist, sub_categories_ids):
 
 
 def _update_existing_artist(fields):
-    id, first_name, last_name, first_name_heb, last_name_heb, image, category_id, sub_categories_ids = fields[:8]
+    id, first_name, last_name, first_name_heb, last_name_heb, image, image_credits, category_id, sub_categories_ids = fields[:8]
     print('first: ' + first_name)
     print('last_name: ' + last_name)
     print('first_name_heb: ' + first_name_heb)

@@ -87,8 +87,8 @@ def sign_in_with_facebook(request):
 @login_required
 def add_user_message(request):
     up = request.user.userprofile
-    type, text, lat, lng = parse_request(request, ['type','text', 'lng', 'lat'])
-    UserMessage.objects.create(user=up, type=type, text=text, lat=lat, lng=lng)
+    type, name, email, phone, text, lat, lng = parse_request(request, ['type','name', 'email', 'phone', 'text', 'lng', 'lat'])
+    UserMessage.objects.create(user=up, type=type, name=name, email=email, phone=phone, text=text, lat=lat, lng=lng)
 
     email = EmailMessage(
         'New User Message Received (' + UserMessage.MESSAGE_TYPE_CHOICES.get(int(type)) + '):',
