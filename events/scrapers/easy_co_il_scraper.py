@@ -28,7 +28,7 @@ SCRAPER_CATEGORIES = {
     'sports_activities': {'easy_id': 4917, 'admin_id': 1, 'sub_category_admin_id': [18], 'default_image': None},
     'cafes': {'easy_id': 425, 'admin_id': 2, 'sub_category_admin_id': [19], 'default_image': None},
     'restaurants': {'easy_id': 20015, 'admin_id': 2, 'sub_category_admin_id': [20], 'default_image': None},
-    'family': {'easy_id': 21923, 'admin_id': 3, 'sub_category_admin_id': [21,22], 'default_image': None},
+    'family': {'easy_id': 21923, 'admin_id': 3, 'sub_category_admin_id': [21, 22], 'default_image': None},
     'spa': {'easy_id': 1585, 'admin_id': 1, 'sub_category_admin_id': [23], 'default_image': None},
     'workshops': {'easy_id': 4920, 'admin_id': 5, 'sub_category_admin_id': [24], 'default_image': None},
 }
@@ -55,11 +55,13 @@ DEFAULTS_FOR_SCRAPER = {'title': '',
                         }
 
 CSV_EVENTS_FIELDS = [
-    'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'artist_id', 'category_id', 'sub_categories_ids', 'audiences',
-    'short_description', 'short_description_heb', 'description', 'description_heb', 'price', 'image_url', 'venue_name',
-    'venue_name_heb', 'venue_street_address', 'venue_street_address_heb', 'venue_city', 'venue_city_heb',
-    'venue_phone_number',
-    'venue_longitude', 'venue_latitude', 'venue_link', 'tickets']
+    'scraper_username (do not touch)', 'title', 'title_heb', 'start_time', 'end_time', 'artist_id', 'category_id',
+    'sub_categories_ids', 'audiences_ids', 'short_description', 'short_description_heb', 'description',
+    'description_heb', 'price', 'image_url (do not touch)', 'venue_id', 'venue_name (do not touch)',
+    'venue_name_heb (do not touch)', 'venue_street_address (do not touch)',
+    'venue_street_address_heb (do not touch)', 'venue_city (do not touch)', 'venue_city_heb (do not touch)',
+    'venue_phone_number (do not touch)', 'venue_longitude (do not touch)',
+    'venue_latitude (do not touch)', 'venue_link (do not touch)', 'tickets']
 
 CSV_VENUES_FIELDS = [
     'name', 'name_heb', 'street_address', 'street_address_heb', 'city', 'city_heb', 'phone_number', 'longitude',
@@ -83,15 +85,18 @@ def _get_event_page_info(url):
 
 
 def _events_category_to_csv(category):
+    print ('****************** doing category ' + category + ' ***************')
     events = get_events(category)
     cat_metadata = SCRAPER_CATEGORIES.get(category)
 
-    existing_events_cmp_fields = Event.objects.filter(Q(start_time__isnull=True) | Q(start_time__gte=datetime.datetime.now())).annotate(
+    existing_events_cmp_fields = Event.objects.filter(
+        Q(start_time__isnull=True) | Q(start_time__gte=datetime.datetime.now())).annotate(
         start_time_str=Cast(TruncSecond('start_time', DateTimeField()), CharField())).values_list('title_heb',
                                                                                                   'start_time_str')
     new_events = []
     new_venues = []
-    existing_venues = Venue.objects.values_list('name_heb', 'city_heb')
+    existing_venues = Venue.objects.values_list('id', 'name_heb', 'city_heb')
+    existing_venues_comparator = [(v[1], v[2]) for v in existing_venues]
     for i, event_json in enumerate(events):
         try:
             print('doing event' + str(i))
@@ -99,7 +104,8 @@ def _events_category_to_csv(category):
             parsed.update(DEFAULTS_FOR_SCRAPER)
             parsed.update(_parse_event(event_json, category))
             parsed['category_id'] = str(cat_metadata.get('admin_id'))
-            parsed['sub_categories_ids'] = str(cat_metadata.get('sub_category_admin_id')).replace('[','').replace(']','')
+            parsed['sub_categories_ids'] = str(cat_metadata.get('sub_category_admin_id')).replace('[', '').replace(']',
+                                                                                                                   '')
             parsed_start_time = parsed.get('start_time')
             if parsed_start_time:
                 event_start_datetime = _to_datetime(parsed.get('start_time'))
@@ -115,15 +121,25 @@ def _events_category_to_csv(category):
                 print('event %s - %s-%s time has passed. excluding from csv...' % (
                     event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
             else:
-                print ('new event: ' + str(parsed) + ', cmp_fields: ' + str(event_cmp_fields))
-                new_events.append(
-                    ','.join(['"' + (parsed.get(field, '') or '').replace('"', '""').strip() + '"' for field in CSV_EVENTS_FIELDS]))
-                if (parsed['venue_name_heb'].strip(), parsed['venue_city_heb'].strip()) not in existing_venues:
+                print('new event: ' + str(parsed) + ', cmp_fields: ' + str(event_cmp_fields))
+
+                venue_comparator = (parsed['venue_name_heb'].strip(), parsed['venue_city_heb'].strip())
+                venue_index = existing_venues_comparator.index(venue_comparator)
+
+                if venue_index != -1:  # venue exists
+                    venue_id = str(existing_venues[venue_index][0])
+                    parsed['venue_id'] = venue_id
+                    print ('venue exists ' + venue_id)
+                else:
+                    parsed['venue_id'] = ''
                     new_venues.append(
                         ','.join(['"' + parsed.get('venue_' + field, '').replace('"', '""').strip() + '"' for field in
                                   CSV_VENUES_FIELDS]))
+                new_events.append(
+                    ','.join(['"' + (parsed.get(field, '') or '').replace('"', '""').strip() + '"' for field in
+                              CSV_EVENTS_FIELDS]))
         except Exception as e:
-            print ('*******************could not do event ' + str(event_json) + ': ' + str(e) + ' ******************')
+            print('*******************could not do event ' + str(event_json) + ': ' + str(e) + ' ******************')
 
     return new_events, set(new_venues)
 
@@ -132,7 +148,7 @@ def events_to_csv(categories=None):
     new_events = [','.join(CSV_EVENTS_FIELDS)]
     new_venues = [','.join(CSV_VENUES_FIELDS)]
     for category in categories or SCRAPER_CATEGORIES.keys():
-        print ('Doing category: ' + category)
+        print('Doing category: ' + category)
         new_events_for_cateogry, new_venues_for_cateogry = _events_category_to_csv(category)
         new_events += new_events_for_cateogry
         new_venues += new_venues_for_cateogry
@@ -213,7 +229,8 @@ def _parse_event(event_json, category):
              'venue_phone_number': event_json.get('phone', '')}
 
     address = event_json.get('address').split(',')
-    if category in ['clubs', 'bars', 'sports_events', 'sports_activities', 'cafes', 'restaurants', 'family', 'spa', 'workshops']:
+    if category in ['clubs', 'bars', 'sports_events', 'sports_activities', 'cafes', 'restaurants', 'family', 'spa',
+                    'workshops']:
         event['venue_name_heb'] = event_json['bizname']
         if len(address) == 2:
             event['venue_street_address_heb'] = address[0]
@@ -268,8 +285,9 @@ def venues_csv_to_db_objects(csv_path):
         for name, name_heb, street_address, street_address_heb, city, city_heb, phone_number, longitude, latitude, link in reader:
             if reader.line_num == 1:
                 continue
-            defaults = {'name': name,  'name_heb': name_heb, 'street_address': street_address,
-                        'street_address_heb': street_address_heb, 'city': city, 'city_heb': city_heb, 'phone_number': phone_number,
+            defaults = {'name': name, 'name_heb': name_heb, 'street_address': street_address,
+                        'street_address_heb': street_address_heb, 'city': city, 'city_heb': city_heb,
+                        'phone_number': phone_number,
                         'longitude': longitude, 'latitude': latitude, 'link': link}
             venue, created = Venue.objects.get_or_create(name_heb=name_heb, city_heb=city_heb, defaults=defaults)
             if created:
@@ -282,24 +300,25 @@ def events_csv_to_db_objects(csv_path):
     # csv_path = '/home/amir/Downloads/tmpstc4gl24.csv'
     with open(csv_path, 'rt') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        for scraper_username, title, title_heb, start_time, end_time, artist_id, category_id, sub_categories, audiences, short_description, short_description_heb, description, description_heb, price, image_url, venue_name, venue_name_heb, venue_street_address, venue_street_addresss_heb, venue_city, venue_city_heb, venue_phone_number, venue_longitude, venue_latitude, venue_link, tickets_link in reader:
-            print ('scraper_username: ' + scraper_username)
+        for scraper_username, title, title_heb, start_time, end_time, artist_id, category_id, sub_categories, audiences_ids, short_description, short_description_heb, description, description_heb, price, image_url, venue_id, venue_name, venue_name_heb, venue_street_address, venue_street_addresss_heb, venue_city, venue_city_heb, venue_phone_number, venue_longitude, venue_latitude, venue_link, tickets_link in reader:
+            print('scraper_username: ' + scraper_username)
             print('title:' + title)
             print('title_heb: ' + title_heb)
             print('start_time: ' + start_time)
-            print('end_time: '  + end_time)
-            print('artist_id: '  + artist_id)
+            print('end_time: ' + end_time)
+            print('artist_id: ' + artist_id)
             print('category_id: ' + category_id)
             print('sub_categories:' + sub_categories)
-            print('audiences: ' + audiences)
+            print('audiences: ' + audiences_ids)
             print('short_description: ' + short_description)
             print('short_description_heb: ' + short_description_heb)
             print('description: ' + description)
-            print('description_heb: '+ description_heb)
+            print('description_heb: ' + description_heb)
             print('price: ' + price)
             print('image_url: ' + image_url)
+            print('venue_id: ' + venue_id)
             print('venue_name: ' + venue_name)
-            print('venue_name_heb: '+ venue_name_heb)
+            print('venue_name_heb: ' + venue_name_heb)
             print('venue_street_address: ' + venue_street_address)
             print('venue_street_addresss_heb: ' + venue_street_addresss_heb)
             print('venue_city: ' + venue_city)
@@ -317,7 +336,7 @@ def events_csv_to_db_objects(csv_path):
                 short_description_heb = title_heb
                 title_heb = title_heb[:50]
             try:
-                venue = Venue.objects.get(name_heb=venue_name_heb, city_heb=venue_city_heb)
+                venue = Venue.objects.get(id=int(venue_id))
                 defaults = {'title': title, 'short_description': short_description,
                             'short_description_heb': short_description_heb, 'description': description,
                             'description_heb': description_heb, 'venue': venue, 'price': price or None,
@@ -332,10 +351,12 @@ def events_csv_to_db_objects(csv_path):
                         event.sub_categories.add(*sub_categories.split(','))
                     event.image = [cat for cat in SCRAPER_CATEGORIES.values() if cat['admin_id'] == int(category_id)][
                         0].get('default_image')
+                    if audiences_ids:
+                        event.audiences.add(*audiences_ids.split(','))
                     event.save()
                     print('Event created: ' + str(event))
                 else:
-                    print ('Event already exists: ' + str(event))
+                    print('Event already exists: ' + str(event))
             except Exception as e:
                 print('skipping event %s - error: %s' % (title_heb, str(e)))
 

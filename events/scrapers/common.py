@@ -157,7 +157,7 @@ def _update_artist_sub_categories(artist, sub_categories_ids):
 
 
 def _update_existing_artist(fields):
-    id, first_name, last_name, first_name_heb, last_name_heb, image, image_credits, category_id, sub_categories_ids = fields[:8]
+    id, first_name, last_name, first_name_heb, last_name_heb, image, image_credits, category_id, sub_categories_ids = fields[:9]
     print('first: ' + first_name)
     print('last_name: ' + last_name)
     print('first_name_heb: ' + first_name_heb)
@@ -165,7 +165,8 @@ def _update_existing_artist(fields):
     print('image: ' + image)
     print('category_id: ' + category_id)
     print('sub_categories_ids: ' + sub_categories_ids)
-    media_fields = fields[8:]
+    print('image_credits: ' + image_credits)
+    media_fields = fields[9:]
     print(str(media_fields))
     artist = Artist.objects.get(id=id)
     artist.first_name = first_name
