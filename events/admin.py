@@ -2,7 +2,7 @@ from adminsortable.admin import SortableAdmin
 from django.contrib import admin
 
 # Register your models here.,
-from events.models import Event, EventCategory, EventSubCategory, Venue, Artist, Media
+from events.models import Event, EventCategory, EventSubCategory, Venue, Artist, Media, Audience
 
 
 class ArtistAdmin(admin.ModelAdmin):
@@ -23,5 +23,6 @@ admin.site.register(Event, EventAdmin)
 admin.site.register(EventCategory, SortableAdmin)
 admin.site.register(EventSubCategory)
 admin.site.register(Venue)
+admin.site.register(Audience)
 admin.site.register(Artist, ArtistAdmin)
 admin.site.register(Media, MediaAdmin)

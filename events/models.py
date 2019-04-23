@@ -118,7 +118,7 @@ class Audience(models.Model):
     icon = models.ImageField(upload_to=audiences_media_path, blank=True, null=True)
 
     def __str__(self):
-        return self.title + ' - ' + self.title_heb or ''
+        return '%d - %s (%s)' % (self.id, self.title or '', self.title_heb or '')
 
 
 class Event(models.Model):
