@@ -8,7 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 
-from users.models import UserProfile, UserSwipeAction, UserMessage
+from users.models import UserProfile, UserSwipeAction, UserMessage, UserRelations
 from users.utils import up_to_json, update_device_info, update_user_fb_data
 from utils.network import parse_request
 
@@ -108,8 +108,23 @@ def add_user_message(request):
     )
 
     email.send()
+    return HttpResponse()
 
-    return HttpResponse();
+
+@csrf_exempt
+@login_required
+def connect_people(request):
+    up = request.user.userprofile
+    inviter_id, event_id = parse_request(request, ['inviterId', 'eventId'])
+    inviter = UserProfile.objects.get(id=inviter_id)
+    ur_related, related_created = UserRelations.objects.get_or_create(relating_user = up, related_user = inviter, state = UserRelations.STATE_CONNECTED)
+    ur_relating, relating_created = UserRelations.objects.get_or_create(related_user = up, relating_user = inviter, state = UserRelations.STATE_CONNECTED)
+    ur_related.meta_data['event_ids'] = list(set(ur_related.meta_data.get('event_ids',[]) + [event_id]))
+    ur_relating.meta_data['event_ids'] = list(set(ur_relating.meta_data.get('event_ids',[]) + [event_id]))
+    ur_related.save()
+    ur_relating.save()
+    return HttpResponse()
+
 
 # EAAEiQAK1MRkBADqY2omBDG0fRQZBJ4f0qAWKXuXfL6ZAacxbEbUd4OBT5Br9MiCsyJQQes5ETdczttOd6G59owxozian0FO8UdeQaytgbeW7ZAW8PjZAkc2dkrs1y4R5QNLGXoSynt7AkzW5Ts5wuxhSfGswYi4w9CjZCoyFOVEkvl67qWU0kvVO5MWQXBmkZAR7t2zYO4mwZDZD
 # 10155722070191599

@@ -88,7 +88,10 @@ class UserRelations(models.Model):
                                      related_name='user_relations_related')
     relation = models.IntegerField(choices=RELATION_CHOICES.items(), default=RELATION_FRIEND)
     state = models.IntegerField(choices=STATE_CHOICES.items(), default=STATE_PENDING)
-    meta_data = JSONField(null=True, blank=True, editable=False)
+    meta_data = JSONField(blank=True, editable=False, default=dict)
+
+    def __str__(self):
+        return self.relating_user.user.username + ' - ' + self.related_user.user.username
 
 
 class UserMessage(models.Model):

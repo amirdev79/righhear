@@ -17,7 +17,7 @@ def _get_user_friends(up, request):
     # return {ru[0]: {'id': ru[0], 'firstName': ru[1], 'image': request.build_absolute_uri(
     #     ru[2] or '/media/profiles/8/fb_profile_image_normal_FXgx8Di.jpg')} for ru in related_users}
 
-    return {8: {'id': 8, 'firstName': 'Amir', 'image': request.build_absolute_uri('/media/profiles/8/fb_profile_image_normal_FXgx8Di.jpg')}}
+    # return {8: {'id': 8, 'firstName': 'Amir', 'image': request.build_absolute_uri('/media/profiles/8/fb_profile_image_normal_FXgx8Di.jpg')}}
 
 def up_to_json(up, request):
     try:

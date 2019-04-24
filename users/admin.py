@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from users.models import UserProfile, UserDevice, UserSwipeAction, UserData, UserMessage
+from users.models import UserProfile, UserDevice, UserSwipeAction, UserData, UserMessage, UserRelations
 
 
 class UserDeviceAdmin(admin.ModelAdmin):
@@ -30,3 +30,4 @@ admin.site.register(UserData, UserDataAdmin)
 admin.site.register(UserDevice, UserDeviceAdmin)
 admin.site.register(UserSwipeAction, UserSwipeActionAdmin)
 admin.site.register(UserMessage, UserMessageAdmin)
+admin.site.register(UserRelations)
