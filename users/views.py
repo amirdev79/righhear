@@ -16,6 +16,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+CONNECT_PEOPLE_RESPONSE_ALREADY_CONNECTED = 1
+CONNECT_PEOPLE_RESPONSE_SUCCESS = 0
+
 
 @csrf_exempt
 def sign_in(request):
@@ -88,7 +91,7 @@ def sign_in_with_facebook(request):
 
 def _format_user_message_email(um):
     return 'User Details: \nid: %s\nusername: %s\nmessage name: %s\nmessage email: %s\nmessage phone: %s\n\n %s' % (
-    um.user.id, um.user.user.username, um.name, um.email, um.phone, um.text)
+        um.user.id, um.user.user.username, um.name, um.email, um.phone, um.text)
 
 
 @csrf_exempt
@@ -117,14 +120,17 @@ def connect_people(request):
     up = request.user.userprofile
     inviter_id, event_id = parse_request(request, ['inviterId', 'eventId'])
     inviter = UserProfile.objects.get(id=inviter_id)
-    ur_related, related_created = UserRelations.objects.get_or_create(relating_user = up, related_user = inviter, state = UserRelations.STATE_CONNECTED)
-    ur_relating, relating_created = UserRelations.objects.get_or_create(related_user = up, relating_user = inviter, state = UserRelations.STATE_CONNECTED)
-    ur_related.meta_data['event_ids'] = list(set(ur_related.meta_data.get('event_ids',[]) + [event_id]))
-    ur_relating.meta_data['event_ids'] = list(set(ur_relating.meta_data.get('event_ids',[]) + [event_id]))
+    ur_related, related_created = UserRelations.objects.get_or_create(relating_user=up, related_user=inviter,
+                                                                      state=UserRelations.STATE_CONNECTED)
+    ur_relating, relating_created = UserRelations.objects.get_or_create(related_user=up, relating_user=inviter,
+                                                                        state=UserRelations.STATE_CONNECTED)
+    ur_related.meta_data['event_ids'] = list(set(ur_related.meta_data.get('event_ids', []) + [event_id]))
+    ur_relating.meta_data['event_ids'] = list(set(ur_relating.meta_data.get('event_ids', []) + [event_id]))
     ur_related.save()
     ur_relating.save()
-    return HttpResponse()
-
+    return JsonResponse(
+        {'status': CONNECT_PEOPLE_RESPONSE_SUCCESS if related_created else CONNECT_PEOPLE_RESPONSE_ALREADY_CONNECTED,
+         'inviterName': inviter.user.first_name})
 
 # EAAEiQAK1MRkBADqY2omBDG0fRQZBJ4f0qAWKXuXfL6ZAacxbEbUd4OBT5Br9MiCsyJQQes5ETdczttOd6G59owxozian0FO8UdeQaytgbeW7ZAW8PjZAkc2dkrs1y4R5QNLGXoSynt7AkzW5Ts5wuxhSfGswYi4w9CjZCoyFOVEkvl67qWU0kvVO5MWQXBmkZAR7t2zYO4mwZDZD
 # 10155722070191599

@@ -1,7 +1,7 @@
 import locale
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Case, When, F
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
@@ -54,7 +54,8 @@ def _events_to_json(request, events, up):
                    'image': request.build_absolute_uri(event.artist.image.url),
                    'media': [{'type': m.type, 'link': m.link} for m in
                              event.artist.media.all()]} if event.artist else None,
-        'media': [{'type': m.type, 'link': m.link, 'youtubeId': m.youtube_id, 'playbackStart': m.playback_start, 'playbackEnd': m.playback_end,
+        'media': [{'type': m.type, 'link': m.link, 'youtubeId': m.youtube_id, 'playbackStart': m.playback_start,
+                   'playbackEnd': m.playback_end,
                    'thumbnail': request.build_absolute_uri(m.thumbnail.url) if m.thumbnail else ''} for m in
                   event.media.all()],
         'promotion': {'text': event.promotion.get('text', '')} if event.promotion else None,
@@ -67,9 +68,14 @@ def _events_to_json(request, events, up):
 @csrf_exempt
 @login_required
 def get_events(request):
+    top_event_id, = parse_request(request, ['topEventId'])
+    print ('top event id: ' + str(top_event_id))
     valid = Q(title__isnull=False, enabled=True)  # , start_time__gte=timezone.now())
-    events = Event.objects.filter(valid).order_by('-rating')
-
+    if top_event_id and top_event_id != -1:
+        valid = valid | Q(id=top_event_id)
+        events = Event.objects.filter(valid).annotate(order=Case(When(id=top_event_id, then=10000000), default=F('rating'))).order_by('-order')
+    else:
+        events = Event.objects.filter(valid).order_by('-rating')
     events_json = _events_to_json(request, events[:50], request.user.userprofile)
     return JsonResponse(events_json, safe=False)
 
@@ -103,4 +109,3 @@ def get_categories(request):
         'order': cat.order} for cat in categories]
 
     return JsonResponse(categories_json, safe=False)
-
