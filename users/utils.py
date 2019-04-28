@@ -36,7 +36,8 @@ def up_to_json(up, request):
                 'image': request.build_absolute_uri(c.image.url) if c.image else ''}
                 for c in up.preferred_categories.all()],
             'subCategories': [{
-                'categoryId': sc.id,
+                'id': sc.id,
+                'categoryId': sc.category.id,
                 'title': sc.title,
                 'image': request.build_absolute_uri(sc.image.url) if sc.image else ''} for sc in
                 up.preferred_sub_categories.all()],

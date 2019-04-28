@@ -69,7 +69,6 @@ def _events_to_json(request, events, up):
 @login_required
 def get_events(request):
     top_event_id, = parse_request(request, ['topEventId'])
-    print ('top event id: ' + str(top_event_id))
     valid = Q(title__isnull=False, enabled=True)  # , start_time__gte=timezone.now())
     if top_event_id and top_event_id != -1:
         valid = valid | Q(id=top_event_id)
