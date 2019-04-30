@@ -1,6 +1,6 @@
 from adminsortable.models import SortableMixin
-from django.db import models
 from django.contrib.postgres.fields import JSONField
+from django.db import models
 
 from users.models import UserProfile
 

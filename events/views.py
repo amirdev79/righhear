@@ -13,6 +13,8 @@ from utils.network import parse_request
 RELATED_USER_FIELDS = ['related_user__id', 'related_user__user__first_name',
                        'related_user__user_data__fb_profile_image_normal']
 
+USER_EVENTS_PAGE_SIZE = 5;
+
 
 def index(request):
     return HttpResponse("Welcome right Hear :)")
@@ -72,23 +74,27 @@ def get_events(request):
     valid = Q(title__isnull=False, enabled=True)  # , start_time__gte=timezone.now())
     if top_event_id and top_event_id != -1:
         valid = valid | Q(id=top_event_id)
-        events = Event.objects.filter(valid).annotate(order=Case(When(id=top_event_id, then=10000000), default=F('rating'))).order_by('-order')
+        events = Event.objects.filter(valid).annotate(
+            order=Case(When(id=top_event_id, then=10000000), default=F('rating'))).order_by('-order')
     else:
         events = Event.objects.filter(valid).order_by('-rating')
-    events_json = _events_to_json(request, events[:50], request.user.userprofile)
+    events_json = _events_to_json(request, events[:10], request.user.userprofile)
     return JsonResponse(events_json, safe=False)
 
 
 @csrf_exempt
 @login_required
 def get_user_selected_events(request):
+    page, = parse_request(request, ['page'])
+    page = int(page)
     up = request.user.userprofile
 
     swipe_right_actions = UserSwipeAction.objects.filter(user=request.user.userprofile,
                                                          action=UserSwipeAction.ACTION_RIGHT)
     selected_events_ids = swipe_right_actions.values_list('event', flat=True)
     selected_events = Event.objects.filter(id__in=selected_events_ids)
-    events_json = _events_to_json(request, selected_events[:20], up)
+    events_json = _events_to_json(request, selected_events[
+                          page * USER_EVENTS_PAGE_SIZE:(page + 1) * USER_EVENTS_PAGE_SIZE], up)
 
     return JsonResponse(events_json, safe=False)
 
