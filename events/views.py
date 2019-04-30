@@ -13,7 +13,7 @@ from utils.network import parse_request
 RELATED_USER_FIELDS = ['related_user__id', 'related_user__user__first_name',
                        'related_user__user_data__fb_profile_image_normal']
 
-USER_EVENTS_PAGE_SIZE = 5;
+USER_EVENTS_PAGE_SIZE = 20;
 
 
 def index(request):
