@@ -213,3 +213,5 @@ LOGGING = {
         },
     },
 }
+
+ADMINS = [('Amir', 'amirdev79Gmail.com')]
