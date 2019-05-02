@@ -55,7 +55,7 @@ def _events_to_json(request, events, up):
         'endTime': event.end_time.strftime("%d.%m - %H:%M") if event.end_time else '',
         'image': get_event_image(request, event),
         'venue': {'name': _by_lang(event.venue, 'name'), 'streetAddress': _by_lang(event.venue, 'street_address'),
-                  'city': _by_lang(event.venue, 'city'), 'lat': event.venue.location.y, 'lng': event.venue.location.x},
+                  'city': _by_lang(event.venue, 'city'), 'lat': event.venue.location.y, 'lng': event.venue.location.x, 'distance': event.distance.m},
         'artist': {'firstName': event.artist.first_name, 'lastName': event.artist.last_name,
                    'image': request.build_absolute_uri(event.artist.image.url),
                    'media': [{'type': m.type, 'link': m.link} for m in
@@ -75,9 +75,12 @@ def _events_to_json(request, events, up):
 @login_required
 def get_events(request):
     top_event_id, user_lng, user_lat = parse_request(request, ['topEventId', 'lng', 'lat'])
+    print (user_lng)
+    print (user_lat)
     ref_location = Point(float(user_lng), float(user_lat), srid=4326)
     valid = Q(title__isnull=False, enabled=True)  # , start_time__gte=timezone.now())
-    events = Event.objects.filter(valid).annotate(distance=Distance('venue__location', ref_location)).order_by('distance')[:EVENTS_PAGE_SIZE]
+    events = Event.objects.filter(valid).annotate(distance=Distance('venue__location', ref_location)).order_by(
+        'distance')[:EVENTS_PAGE_SIZE]
 
     if top_event_id and top_event_id != -1:
         events = list(Event.objects.filter(id=top_event_id)) + list(events)
