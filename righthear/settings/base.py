@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'events',
     'utils',
     'adminsortable',
+    'django.contrib.gis'
 ]
 
 MIDDLEWARE = [
@@ -91,7 +92,8 @@ WSGI_APPLICATION = 'righthear.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        # 'ENGINE': 'django.db.backends.postgresql',
         # 'NAME': os.path.join(BASE_DB_DIR, 'rhdb'),
         'NAME': 'rhdb',
         'USER': 'postgres',

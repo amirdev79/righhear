@@ -1,6 +1,9 @@
 import locale
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.measure import D
+from django.contrib.gis.geos import Point
 from django.db.models import Q, Case, When, F
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -13,6 +16,7 @@ from utils.network import parse_request
 RELATED_USER_FIELDS = ['related_user__id', 'related_user__user__first_name',
                        'related_user__user_data__fb_profile_image_normal']
 
+EVENTS_PAGE_SIZE = 20;
 USER_EVENTS_PAGE_SIZE = 20;
 
 
@@ -51,7 +55,7 @@ def _events_to_json(request, events, up):
         'endTime': event.end_time.strftime("%d.%m - %H:%M") if event.end_time else '',
         'image': get_event_image(request, event),
         'venue': {'name': _by_lang(event.venue, 'name'), 'streetAddress': _by_lang(event.venue, 'street_address'),
-                  'city': _by_lang(event.venue, 'city'), 'lat': event.venue.latitude, 'lng': event.venue.longitude},
+                  'city': _by_lang(event.venue, 'city'), 'lat': event.venue.location.y, 'lng': event.venue.location.x},
         'artist': {'firstName': event.artist.first_name, 'lastName': event.artist.last_name,
                    'image': request.build_absolute_uri(event.artist.image.url),
                    'media': [{'type': m.type, 'link': m.link} for m in
@@ -70,22 +74,21 @@ def _events_to_json(request, events, up):
 @csrf_exempt
 @login_required
 def get_events(request):
-    top_event_id, = parse_request(request, ['topEventId'])
+    top_event_id, user_lng, user_lat = parse_request(request, ['topEventId', 'lng', 'lat'])
+    ref_location = Point(float(user_lng), float(user_lat), srid=4326)
     valid = Q(title__isnull=False, enabled=True)  # , start_time__gte=timezone.now())
+    events = Event.objects.filter(valid).annotate(distance=Distance('venue__location', ref_location)).order_by('distance')[:EVENTS_PAGE_SIZE]
+
     if top_event_id and top_event_id != -1:
-        valid = valid | Q(id=top_event_id)
-        events = Event.objects.filter(valid).annotate(
-            order=Case(When(id=top_event_id, then=10000000), default=F('rating'))).order_by('-order')
-    else:
-        events = Event.objects.filter(valid).order_by('-rating')
-    events_json = _events_to_json(request, events[:10], request.user.userprofile)
+        events = list(Event.objects.filter(id=top_event_id)) + list(events)
+    events_json = _events_to_json(request, events, request.user.userprofile)
     return JsonResponse(events_json, safe=False)
 
 
 @csrf_exempt
 @login_required
 def get_user_selected_events(request):
-    page, = parse_request(request, ['page'])
+    page, user_lng, user_lat = parse_request(request, ['page', 'lng', 'lat'])
     page = int(page)
     up = request.user.userprofile
 
@@ -94,7 +97,7 @@ def get_user_selected_events(request):
     selected_events_ids = swipe_right_actions.values_list('event', flat=True)
     selected_events = Event.objects.filter(id__in=selected_events_ids)
     events_json = _events_to_json(request, selected_events[
-                          page * USER_EVENTS_PAGE_SIZE:(page + 1) * USER_EVENTS_PAGE_SIZE], up)
+                                           page * USER_EVENTS_PAGE_SIZE:(page + 1) * USER_EVENTS_PAGE_SIZE], up)
 
     return JsonResponse(events_json, safe=False)
 
