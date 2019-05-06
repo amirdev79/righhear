@@ -55,7 +55,7 @@ def _events_to_json(request, events, up):
         'endTime': event.end_time.strftime("%d.%m - %H:%M") if event.end_time else '',
         'image': get_event_image(request, event),
         'venue': {'name': _by_lang(event.venue, 'name'), 'streetAddress': _by_lang(event.venue, 'street_address'),
-                  'city': _by_lang(event.venue, 'city'), 'lat': event.venue.location.y, 'lng': event.venue.location.x, 'distance': event.distance.m},
+                  'city': _by_lang(event.venue, 'city'), 'distance': int(event.distance.m)},
         'artist': {'firstName': event.artist.first_name, 'lastName': event.artist.last_name,
                    'image': request.build_absolute_uri(event.artist.image.url),
                    'media': [{'type': m.type, 'link': m.link} for m in

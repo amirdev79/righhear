@@ -124,17 +124,27 @@ def _events_category_to_csv(category):
                 print('new event: ' + str(parsed) + ', cmp_fields: ' + str(event_cmp_fields))
 
                 venue_comparator = (parsed['venue_name_heb'].strip(), parsed['venue_city_heb'].strip())
-                venue_index = existing_venues_comparator.index(venue_comparator)
-
-                if venue_index != -1:  # venue exists
+                try:
+                    venue_index = existing_venues_comparator.index(venue_comparator)
                     venue_id = str(existing_venues[venue_index][0])
                     parsed['venue_id'] = venue_id
                     print ('venue exists ' + venue_id)
-                else:
+                except ValueError as e:
                     parsed['venue_id'] = ''
                     new_venues.append(
                         ','.join(['"' + parsed.get('venue_' + field, '').replace('"', '""').strip() + '"' for field in
                                   CSV_VENUES_FIELDS]))
+
+                # if venue_index != -1:  # venue exists
+                #     venue_id = str(existing_venues[venue_index][0])
+                #     parsed['venue_id'] = venue_id
+                #     print ('venue exists ' + venue_id)
+                # else:
+                #     parsed['venue_id'] = ''
+                #     new_venues.append(
+                #         ','.join(['"' + parsed.get('venue_' + field, '').replace('"', '""').strip() + '"' for field in
+                #                   CSV_VENUES_FIELDS]))
+
                 new_events.append(
                     ','.join(['"' + (parsed.get(field, '') or '').replace('"', '""').strip() + '"' for field in
                               CSV_EVENTS_FIELDS]))
@@ -176,6 +186,9 @@ def events_to_csv(categories=None):
 def get_events(category):
     events_list = []
     current_page = 0
+    # headers = {
+    #     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+
     while current_page == 0 or json_list.get('nextpage'):
         url = 'https://easy.co.il/json/list.json?c=' + str(SCRAPER_CATEGORIES.get(category).get('easy_id'))
         if current_page > 0:

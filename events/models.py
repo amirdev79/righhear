@@ -52,7 +52,7 @@ class Venue(models.Model):
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
     # latitude = models.DecimalField(max_digits=9, decimal_places=6, editable=False, default=0)
-    location = PointField(null=True, blank=False, srid=4326, verbose_name="Location")
+    location = PointField(null=True, blank=True, srid=4326, verbose_name="Location")
 
     def __str__(self):
         return self.name + ' - ' + self.city or '' + '(' + self.name_heb or '' + ' - ' + self.city_heb or '' + ')'
