@@ -90,7 +90,7 @@ class Media(models.Model):
     playback_end = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
-        return self.link or self.youtube_id + ' (' +self.type + ')'
+        return self.tag
 
 
 class Artist(models.Model):
