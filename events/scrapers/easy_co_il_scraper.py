@@ -186,8 +186,8 @@ def events_to_csv(categories=None):
 def get_events(category):
     events_list = []
     current_page = 0
-    # headers = {
-    #     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
     while current_page == 0 or json_list.get('nextpage'):
         url = 'https://easy.co.il/json/list.json?c=' + str(SCRAPER_CATEGORIES.get(category).get('easy_id'))
