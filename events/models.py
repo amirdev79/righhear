@@ -25,7 +25,7 @@ class EventCategory(SortableMixin):
     icon_name = models.CharField(max_length=10, null=True)
 
     def __str__(self):
-        return self.title
+        return str(self.id) + ' - ' + self.title
 
 
 class EventSubCategory(models.Model):
@@ -38,7 +38,7 @@ class EventSubCategory(models.Model):
     image = models.ImageField(upload_to=event_sub_category_media_path)
 
     def __str__(self):
-        return self.title
+        return str(self.id) + ' - ' + self.title
 
 
 class Venue(models.Model):
