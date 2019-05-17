@@ -1,6 +1,11 @@
 import csv
+import time
+
+import requests
+from lxml.html import fromstring
 
 from events.models import Artist, Media, EventCategory
+from random import randint
 
 MEDIA_URL = 'http://35.196.96.207'
 ARTIST_CSV_HEADER = 'id (-), first_name, last_name (leave empty if not relevant), first_name_heb, last_name_heb (leave empty if not relevant), category_id, sub_categories_ids, media1_id , ' \
@@ -8,10 +13,14 @@ ARTIST_CSV_HEADER = 'id (-), first_name, last_name (leave empty if not relevant)
                     'media2_link, media2_playback_start, media2_playback_end, media3_id, media3_type, media3_link, ' \
                     'media3_playback_start, media3_playback_end '
 
-ARTIST_FIELDS = ['id (do not touch)', 'first_name', 'last_name', 'first_name_heb', 'last_name_heb', 'image (do not touch)', 'image credits (do not touch)', 'category',
-                 'sub_categories', 'media1 id (do not touch)', 'media1 type', 'media1 link/youtube id', 'media1 playback start',
-                 'media1 playback end', 'media2 id (do not touch)', 'media2 type', 'media2 link/youtube id', 'media2 playback start',
-                 'media2 playback end', 'media3 id (do not touch)', 'media3 type', 'media3 link/youtube id', 'media3 playback start',
+ARTIST_FIELDS = ['id (do not touch)', 'first_name', 'last_name', 'first_name_heb', 'last_name_heb',
+                 'image (do not touch)', 'image credits (do not touch)', 'category',
+                 'sub_categories', 'media1 id (do not touch)', 'media1 type', 'media1 link/youtube id',
+                 'media1 playback start',
+                 'media1 playback end', 'media2 id (do not touch)', 'media2 type', 'media2 link/youtube id',
+                 'media2 playback start',
+                 'media2 playback end', 'media3 id (do not touch)', 'media3 type', 'media3 link/youtube id',
+                 'media3 playback start',
                  'media3 playback end']
 
 MEDIA_TYPES = {v: k for k, v in Media.MEDIA_TYPE_CHOICES.items()}
@@ -38,7 +47,8 @@ def _get_artist_csv_line(artist):
     category = artist.category.id if artist.category else ''
     sub_categories = ','.join([str(id) for id in artist.sub_categories.values_list('id', flat=True) or []])
 
-    fields = [str(artist.id), artist.first_name, artist.last_name, artist.first_name_heb, artist.last_name_heb, image, artist.image_credits,
+    fields = [str(artist.id), artist.first_name, artist.last_name, artist.first_name_heb, artist.last_name_heb, image,
+              artist.image_credits,
               str(category), sub_categories]
     for media in artist.media.all():
         fields += _get_media_fields(media)
@@ -119,7 +129,7 @@ def _add_media(artist, media_fields):
         if not created:
             raise Exception('Media with this link/youtube id already exists. id: ' + str(m.id))
         m.link = link
-        m.type=MEDIA_TYPES[m_type]
+        m.type = MEDIA_TYPES[m_type]
         m.youtube_id = youtube_id
         m.playback_start = m_playback_start
         m.playback_end = m_playback_end
@@ -157,7 +167,8 @@ def _update_artist_sub_categories(artist, sub_categories_ids):
 
 
 def _update_existing_artist(fields):
-    id, first_name, last_name, first_name_heb, last_name_heb, image, image_credits, category_id, sub_categories_ids = fields[:9]
+    id, first_name, last_name, first_name_heb, last_name_heb, image, image_credits, category_id, sub_categories_ids = fields[
+                                                                                                                      :9]
     print('first: ' + first_name)
     print('last_name: ' + last_name)
     print('first_name_heb: ' + first_name_heb)
@@ -189,3 +200,21 @@ def artists_csv_to_db(csv_path):
                 _update_existing_artist(artist_line)
             else:
                 create_new_artist(artist_line)
+
+
+def wait():
+    num_sec = randint(0, 2)
+    time.sleep(num_sec)
+
+
+def get_proxies():
+    url = 'https://free-proxy-list.net/'
+    response = requests.get(url)
+    parser = fromstring(response.text)
+    proxies = set()
+    for i in parser.xpath('//tbody/tr')[:10]:
+        if i.xpath('.//td[7][contains(text(),"yes")]'):
+            # Grabbing IP and corresponding PORT
+            proxy = ":".join([i.xpath('.//td[1]/text()')[0], i.xpath('.//td[2]/text()')[0]])
+            proxies.add(proxy)
+    return proxies

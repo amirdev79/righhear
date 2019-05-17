@@ -3,6 +3,7 @@ import datetime
 import json
 import re
 import tempfile
+from itertools import cycle
 
 import requests
 from django.core.files.images import ImageFile
@@ -11,6 +12,7 @@ from django.db.models import DateTimeField, CharField, Q
 from django.db.models.functions import Cast, TruncSecond
 
 from events.models import Event, Venue, Artist
+from events.scrapers.common import wait, get_proxies
 from events.utils import get_gmaps_info
 from righthear import settings
 from users.models import UserProfile
@@ -73,19 +75,31 @@ def _to_datetime(datetime_str):
     return datetime.datetime.strptime(datetime_str, '%d.%m.%y, %H:%M').astimezone()
 
 
-def _get_event_page_info(url):
+def _get_event_page_info(url, proxy):
     info = {}
     page_id = url[url.rindex('/') + 1:]
     url = 'https://easy.co.il/json/bizpage.json?p=' + page_id
-    response = requests.get(url)
+    response = requests.get(url, proxies={"http": proxy, "https": proxy})
     event_json = response.json()['bizpage']
     info['text'] = event_json['description']['text']
     info['tickets_link'] = event_json['description']['link']['link']
     return info
 
 
-def _events_category_to_csv(category):
-    print ('****************** doing category ' + category + ' ***************')
+def _is_event_exists(event_json, existing_events_cmp_fields):
+    parsed_start_time = _get_start_time(event_json)
+    if parsed_start_time:
+        event_start_datetime = _to_datetime(parsed_start_time)
+        db_format_datetime = event_start_datetime.strftime('%Y-%m-%d %H:%M:%S')
+    else:
+        event_start_datetime = db_format_datetime = None
+
+    event_cmp_fields = event_json['bizname'].strip()[:50], db_format_datetime
+    return event_cmp_fields in existing_events_cmp_fields
+
+
+def _events_category_to_csv(category, proxies):
+    print('****************** doing category ' + category + ' ***************')
     events = get_events(category)
     cat_metadata = SCRAPER_CATEGORIES.get(category)
 
@@ -97,12 +111,23 @@ def _events_category_to_csv(category):
     new_venues = []
     existing_venues = Venue.objects.values_list('id', 'name_heb', 'city_heb')
     existing_venues_comparator = [(v[1], v[2]) for v in existing_venues]
+    proxy = next(proxies)
     for i, event_json in enumerate(events):
         try:
             print('doing event' + str(i))
+            if _is_event_exists(event_json, existing_events_cmp_fields):
+                print('event %s is already in DB. excluding from csv...' % event_json['bizname'])
+                continue
+
+            # disguise scraping activity
+            wait()
+            if i % 10 == 0:
+                proxy = next(proxies)
+                print ('changing proxy to ' + str(proxy))
+
             parsed = {}
             parsed.update(DEFAULTS_FOR_SCRAPER)
-            parsed.update(_parse_event(event_json, category))
+            parsed.update(_parse_event(event_json, category, proxy))
             parsed['category_id'] = str(cat_metadata.get('admin_id'))
             parsed['sub_categories_ids'] = str(cat_metadata.get('sub_category_admin_id')).replace('[', '').replace(']',
                                                                                                                    '')
@@ -128,7 +153,7 @@ def _events_category_to_csv(category):
                     venue_index = existing_venues_comparator.index(venue_comparator)
                     venue_id = str(existing_venues[venue_index][0])
                     parsed['venue_id'] = venue_id
-                    print ('venue exists ' + venue_id)
+                    print('venue exists ' + venue_id)
                 except ValueError as e:
                     parsed['venue_id'] = ''
                     new_venues.append(
@@ -157,9 +182,10 @@ def _events_category_to_csv(category):
 def events_to_csv(categories=None):
     new_events = [','.join(CSV_EVENTS_FIELDS)]
     new_venues = [','.join(CSV_VENUES_FIELDS)]
+    proxies = cycle(get_proxies())
     for category in categories or SCRAPER_CATEGORIES.keys():
         print('Doing category: ' + category)
-        new_events_for_cateogry, new_venues_for_cateogry = _events_category_to_csv(category)
+        new_events_for_cateogry, new_venues_for_cateogry = _events_category_to_csv(category, proxies)
         new_events += new_events_for_cateogry
         new_venues += new_venues_for_cateogry
 
@@ -236,7 +262,7 @@ def _get_price(event_json):
         return ''
 
 
-def _parse_event(event_json, category):
+def _parse_event(event_json, category, proxy):
     event = {'title_heb': event_json['bizname'], 'start_time': _get_start_time(event_json),
              'venue_longitude': event_json['lng'], 'venue_latitude': event_json['lat'],
              'venue_phone_number': event_json.get('phone', '')}
@@ -285,7 +311,7 @@ def _parse_event(event_json, category):
     # print(str(event))
 
     if category in ['music', 'movies', 'standup', 'theater']:
-        additional_info = _get_event_page_info(event_json['url'])
+        additional_info = _get_event_page_info(event_json['url'], proxy)
         event['tickets'] = additional_info['tickets_link']
         event['description_heb'] = additional_info['text']
     return event
