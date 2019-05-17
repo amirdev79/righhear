@@ -35,7 +35,7 @@ custom.py examples:
 import socket
 import sys
 
-PRODUCTION_HOSTNAME = 'devamir'
+PRODUCTION_HOSTNAME = 'instance-2'
 CURRENT_HOSTNAME = socket.gethostname()
 
 try:
