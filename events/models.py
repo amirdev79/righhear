@@ -108,7 +108,7 @@ class Artist(models.Model):
     media = models.ManyToManyField(Media, blank=True)
 
     def __str__(self):
-        return str(self.id) + ' - ' + self.first_name + ' ' + self.last_name or ''
+        return str(self.id) + ' - ' + (self.first_name or '') + ' ' + (self.last_name or '')
 
 
 class Audience(models.Model):
