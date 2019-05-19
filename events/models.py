@@ -1,5 +1,6 @@
 from adminsortable.models import SortableMixin
 from django.contrib.gis.db.models import PointField
+from django.contrib.gis.geos import Point
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 
@@ -48,7 +49,15 @@ class Venue(models.Model):
     city_heb = models.CharField(max_length=50, null=True)
     link = models.URLField(blank=True, max_length=400)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, editable=True, blank=False, default=0)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, editable=True, blank= False, default=0)
     location = PointField(null=True, blank=True, srid=4326, verbose_name="Location")
+
+    def save(self, *args, **kwargs):
+        # Do the maths here to calculate lat/lon
+        self.location = Point(x=float(self.longitude), y=float(self.latitude), srid=4326)
+        super(Venue, self).save(*args, **kwargs)
+
 
     def __str__(self):
         return self.name + ' - ' + self.city or '' + '(' + self.name_heb or '' + ' - ' + self.city_heb or '' + ')'
