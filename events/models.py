@@ -7,12 +7,10 @@ from users.models import UserProfile
 
 
 class EventCategory(SortableMixin):
-
     class Meta:
         verbose_name = 'Event Category'
         verbose_name_plural = 'Event Categories'
         ordering = ['order']
-
 
     def event_category_media_path(instance, filename):
         return 'categories/{0}_{1}.{2}'.format(instance.id, instance.title, filename[-3:])
@@ -48,7 +46,7 @@ class Venue(models.Model):
     street_address_heb = models.CharField(max_length=200, null=True)
     city = models.CharField(max_length=50)
     city_heb = models.CharField(max_length=50, null=True)
-    link = models.URLField(blank=True)
+    link = models.URLField(blank=True, max_length=400)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     location = PointField(null=True, blank=True, srid=4326, verbose_name="Location")
 
@@ -58,9 +56,8 @@ class Venue(models.Model):
 
 class Media(models.Model):
 
-    def thumbnail_media_path(instance   , filename):
+    def thumbnail_media_path(instance, filename):
         return 'media_thumbnails/{0}/{1}'.format(instance.id if instance.id else 'new', filename)
-
 
     TYPE_IMAGE, TYPE_AUDIO, TYPE_VIDEO, TYPE_YOUTUBE = "IMG", "AUD", "VID", "YT"
     MEDIA_TYPE_CHOICES = {
@@ -148,8 +145,7 @@ class Event(models.Model):
     image = models.ImageField(upload_to=events_media_path, blank=True)
     audiences = models.ManyToManyField(Audience)
     rating = models.IntegerField(default=0)
-    tickets_link =  models.URLField(blank=True)
+    tickets_link = models.URLField(blank=True)
 
     def __str__(self):
         return str(self.id) + ' - ' + self.title or '' + ', ' + self.title_heb or ''
-

@@ -325,6 +325,16 @@ def venues_csv_to_db_objects(csv_path):
         for name, name_heb, street_address, street_address_heb, city, city_heb, phone_number, longitude, latitude, link in reader:
             if reader.line_num == 1:
                 continue
+            print ('name: ' +  name)
+            print ('name_heb: ' + name_heb)
+            print ('street_address: ' + street_address)
+            print ('street_address_heb: ' + street_address_heb)
+            print ('city: ' + city)
+            print ('city_heb: ' + city_heb)
+            print ('phone_number: ' + phone_number)
+            print ('longitude: ' + longitude)
+            print ('latitude: ' + latitude)
+            print ('link: ' + link)
             ref_location = Point(float(longitude), float(latitude), srid=4326)
             defaults = {'name': name, 'name_heb': name_heb, 'street_address': street_address,
                         'street_address_heb': street_address_heb, 'city': city, 'city_heb': city_heb,
