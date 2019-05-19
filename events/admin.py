@@ -15,7 +15,7 @@ class EventAdmin(admin.ModelAdmin):
 
 
 class MediaAdmin(admin.ModelAdmin):
-    list_display = ('type', 'link', 'youtube_id', 'playback_start', 'playback_end', 'create_time')
+    list_display = ('id', 'tag', 'type', 'link', 'youtube_id', 'playback_start', 'playback_end', 'create_time')
     list_filter = 'type',
 
 

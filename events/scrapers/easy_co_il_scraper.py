@@ -6,6 +6,7 @@ import tempfile
 from itertools import cycle
 
 import requests
+from django.contrib.gis.geos import Point
 from django.core.files.images import ImageFile
 from django.core.mail import EmailMessage
 from django.db.models import DateTimeField, CharField, Q
@@ -59,7 +60,7 @@ DEFAULTS_FOR_SCRAPER = {'title': '',
 CSV_EVENTS_FIELDS = [
     'scraper_username (do not touch)', 'title', 'title_heb', 'start_time', 'end_time', 'artist_id', 'category_id',
     'sub_categories_ids', 'audiences_ids', 'short_description', 'short_description_heb', 'description',
-    'description_heb', 'price', 'image_url (do not touch)', 'venue_id', 'venue_name (do not touch)',
+    'description_heb', 'price', 'image_url (do not touch)', 'media_ids', 'venue_id', 'venue_name (do not touch)',
     'venue_name_heb (do not touch)', 'venue_street_address (do not touch)',
     'venue_street_address_heb (do not touch)', 'venue_city (do not touch)', 'venue_city_heb (do not touch)',
     'venue_phone_number (do not touch)', 'venue_longitude (do not touch)',
@@ -324,10 +325,10 @@ def venues_csv_to_db_objects(csv_path):
         for name, name_heb, street_address, street_address_heb, city, city_heb, phone_number, longitude, latitude, link in reader:
             if reader.line_num == 1:
                 continue
+            ref_location = Point(float(longitude), float(latitude), srid=4326)
             defaults = {'name': name, 'name_heb': name_heb, 'street_address': street_address,
                         'street_address_heb': street_address_heb, 'city': city, 'city_heb': city_heb,
-                        'phone_number': phone_number,
-                        'longitude': longitude, 'latitude': latitude, 'link': link}
+                        'phone_number': phone_number, 'link': link, 'location': ref_location}
             venue, created = Venue.objects.get_or_create(name_heb=name_heb, city_heb=city_heb, defaults=defaults)
             if created:
                 print('created venue: ' + name + ', ' + name_heb)
