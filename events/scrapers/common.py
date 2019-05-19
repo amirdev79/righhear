@@ -203,7 +203,7 @@ def artists_csv_to_db(csv_path):
 
 
 def wait():
-    num_sec = randint(0, 2)
+    num_sec = randint(0, 1)
     time.sleep(num_sec)
 
 

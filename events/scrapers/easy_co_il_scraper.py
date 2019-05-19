@@ -58,13 +58,13 @@ DEFAULTS_FOR_SCRAPER = {'title': '',
                         }
 
 CSV_EVENTS_FIELDS = [
-    'scraper_username (do not touch)', 'title', 'title_heb', 'start_time', 'end_time', 'artist_id', 'category_id',
+    'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'artist_id', 'category_id',
     'sub_categories_ids', 'audiences_ids', 'short_description', 'short_description_heb', 'description',
-    'description_heb', 'price', 'image_url (do not touch)', 'media_ids', 'venue_id', 'venue_name (do not touch)',
-    'venue_name_heb (do not touch)', 'venue_street_address (do not touch)',
-    'venue_street_address_heb (do not touch)', 'venue_city (do not touch)', 'venue_city_heb (do not touch)',
-    'venue_phone_number (do not touch)', 'venue_longitude (do not touch)',
-    'venue_latitude (do not touch)', 'venue_link (do not touch)', 'tickets']
+    'description_heb', 'price', 'image_url', 'media_ids', 'venue_id', 'venue_name',
+    'venue_name_heb', 'venue_street_address',
+    'venue_street_address_heb', 'venue_city', 'venue_city_heb',
+    'venue_phone_number', 'venue_longitude',
+    'venue_latitude', 'venue_link', 'tickets']
 
 CSV_VENUES_FIELDS = [
     'name', 'name_heb', 'street_address', 'street_address_heb', 'city', 'city_heb', 'phone_number', 'longitude',
@@ -99,6 +99,14 @@ def _is_event_exists(event_json, existing_events_cmp_fields):
     return event_cmp_fields in existing_events_cmp_fields
 
 
+def _get_venue_id(parsed):
+    Q1 = Q(name_heb=parsed['venue_name_heb'], city=parsed['venue_city_heb'])
+    Q2 = Q(location=Point(float(parsed['venue_longitude']), float(parsed['venue_latitude']),
+                     srid=4326))
+    Q3 = Q(street_address=parsed['venue_street_address'])
+    venue = Venue.objects.filter(Q1 | Q2 | Q3).first()
+    return venue.id if venue else None
+
 def _events_category_to_csv(category, proxies):
     print('****************** doing category ' + category + ' ***************')
     events = get_events(category)
@@ -110,10 +118,8 @@ def _events_category_to_csv(category, proxies):
                                                                                                   'start_time_str')
     new_events = []
     new_venues = []
-    existing_venues = Venue.objects.values_list('id', 'name_heb', 'city_heb')
-    existing_venues_comparator = [(v[1], v[2]) for v in existing_venues]
     proxy = next(proxies)
-    for i, event_json in enumerate(events):
+    for i, event_json in enumerate(events[:10]):
         try:
             print('doing event' + str(i))
             if _is_event_exists(event_json, existing_events_cmp_fields):
@@ -124,7 +130,7 @@ def _events_category_to_csv(category, proxies):
             wait()
             if i % 10 == 0:
                 proxy = next(proxies)
-                print ('changing proxy to ' + str(proxy))
+                print('changing proxy to ' + str(proxy))
 
             parsed = {}
             parsed.update(DEFAULTS_FOR_SCRAPER)
@@ -148,18 +154,14 @@ def _events_category_to_csv(category, proxies):
                     event_cmp_fields[0], parsed.get('start_time'), parsed.get('end_time')))
             else:
                 print('new event: ' + str(parsed) + ', cmp_fields: ' + str(event_cmp_fields))
-
-                venue_comparator = (parsed['venue_name_heb'].strip(), parsed['venue_city_heb'].strip())
-                try:
-                    venue_index = existing_venues_comparator.index(venue_comparator)
-                    venue_id = str(existing_venues[venue_index][0])
-                    parsed['venue_id'] = venue_id
-                    print('venue exists ' + venue_id)
-                except ValueError as e:
-                    parsed['venue_id'] = ''
+                venue_id = _get_venue_id(parsed)
+                print ('********** venue: %s **********' % str(venue_id or 'NO VENUE'))
+                parsed['venue_id'] = str(venue_id or '')
+                if not venue_id:
                     new_venues.append(
-                        ','.join(['"' + parsed.get('venue_' + field, '').replace('"', '""').strip() + '"' for field in
-                                  CSV_VENUES_FIELDS]))
+                        ','.join(
+                            ['"' + parsed.get('venue_' + field, '').replace('"', '""').strip() + '"' for field in
+                             CSV_VENUES_FIELDS]))
 
                 # if venue_index != -1:  # venue exists
                 #     venue_id = str(existing_venues[venue_index][0])
@@ -267,7 +269,7 @@ def _parse_event(event_json, category, proxy):
     event = {'title_heb': event_json['bizname'], 'start_time': _get_start_time(event_json),
              'venue_longitude': event_json['lng'], 'venue_latitude': event_json['lat'],
              'venue_phone_number': event_json.get('phone', '')}
-
+    print ('event json: ' + str(event_json))
     address = event_json.get('address').split(',')
     if category in ['clubs', 'bars', 'sports_events', 'sports_activities', 'cafes', 'restaurants', 'family', 'spa',
                     'workshops']:
@@ -284,7 +286,7 @@ def _parse_event(event_json, category, proxy):
             venue_name = city = address[0]
         event['venue_name_heb'] = venue_name
         event['venue_city_heb'] = city
-        gmaps_address = get_gmaps_info(venue_name)
+        gmaps_address = get_gmaps_info(venue_name if len(address) != 2 else ', '.join(address))
         if gmaps_address:
             # print (str(gmaps_address))
             address_arr = gmaps_address['formatted_address'].split(',')
@@ -325,16 +327,16 @@ def venues_csv_to_db_objects(csv_path):
         for name, name_heb, street_address, street_address_heb, city, city_heb, phone_number, longitude, latitude, link in reader:
             if reader.line_num == 1:
                 continue
-            print ('name: ' +  name)
-            print ('name_heb: ' + name_heb)
-            print ('street_address: ' + street_address)
-            print ('street_address_heb: ' + street_address_heb)
-            print ('city: ' + city)
-            print ('city_heb: ' + city_heb)
-            print ('phone_number: ' + phone_number)
-            print ('longitude: ' + longitude)
-            print ('latitude: ' + latitude)
-            print ('link: ' + link)
+            print('name: ' + name)
+            print('name_heb: ' + name_heb)
+            print('street_address: ' + street_address)
+            print('street_address_heb: ' + street_address_heb)
+            print('city: ' + city)
+            print('city_heb: ' + city_heb)
+            print('phone_number: ' + phone_number)
+            print('longitude: ' + longitude)
+            print('latitude: ' + latitude)
+            print('link: ' + link)
             ref_location = Point(float(longitude), float(latitude), srid=4326)
             defaults = {'name': name, 'name_heb': name_heb, 'street_address': street_address,
                         'street_address_heb': street_address_heb, 'city': city, 'city_heb': city_heb,
@@ -386,7 +388,10 @@ def events_csv_to_db_objects(csv_path):
                 short_description_heb = title_heb
                 title_heb = title_heb[:50]
             try:
-                venue = Venue.objects.get(id=int(venue_id))
+                if venue_id:
+                    venue = Venue.objects.get(id=int(venue_id))
+                else:
+                    venue = None
                 defaults = {'title': title, 'short_description': short_description,
                             'short_description_heb': short_description_heb, 'description': description,
                             'description_heb': description_heb, 'venue': venue, 'price': price or None,
@@ -409,6 +414,7 @@ def events_csv_to_db_objects(csv_path):
                     print('Event already exists: ' + str(event))
             except Exception as e:
                 print('skipping event %s - error: %s' % (title_heb, str(e)))
+
 
 # def _parse_bars_event(event_json):
 #     title = event_json[bizname]
@@ -462,22 +468,3 @@ def events_csv_to_db_objects(csv_path):
 #         print(event created:  + str(event))
 #
 #     return event, event_created, venue, venue_created
-
-import pkgutil
-import encodings
-import os
-
-def all_encodings():
-    modnames = set([modname for importer, modname, ispkg in pkgutil.walk_packages(
-        path=[os.path.dirname(encodings.__file__)], prefix='')])
-    aliases = set(encodings.aliases.aliases.values())
-    return modnames.union(aliases)
-#
-# text = b'\xb3'
-# for enc in all_encodings():
-#     try:
-#         msg = text.decode(enc)
-#     except Exception:
-#         continue
-#     if msg == 'ñ':
-#         print('Decoding {t} with {enc} is {m}'.format(t=text, enc=enc, m=msg))
