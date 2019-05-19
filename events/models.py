@@ -58,7 +58,7 @@ class Venue(models.Model):
 
 class Media(models.Model):
 
-    def thumbnail_media_path(instance, filename):
+    def thumbnail_media_path(instance   , filename):
         return 'media_thumbnails/{0}/{1}'.format(instance.id if instance.id else 'new', filename)
 
 
