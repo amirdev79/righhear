@@ -102,10 +102,11 @@ def _is_event_exists(event_json, existing_events_cmp_fields):
 def _get_venue_id(parsed):
     Q1 = Q(name_heb=parsed['venue_name_heb'], city=parsed['venue_city_heb'])
     Q2 = Q(location=Point(float(parsed['venue_longitude']), float(parsed['venue_latitude']),
-                     srid=4326))
+                          srid=4326))
     Q3 = Q(street_address=parsed['venue_street_address'])
     venue = Venue.objects.filter(Q1 | Q2 | Q3).first()
     return venue.id if venue else None
+
 
 def _events_category_to_csv(category, proxies):
     print('****************** doing category ' + category + ' ***************')
@@ -155,7 +156,7 @@ def _events_category_to_csv(category, proxies):
             else:
                 print('new event: ' + str(parsed) + ', cmp_fields: ' + str(event_cmp_fields))
                 venue_id = _get_venue_id(parsed)
-                print ('********** venue: %s **********' % str(venue_id or 'NO VENUE'))
+                print('********** venue: %s **********' % str(venue_id or 'NO VENUE'))
                 parsed['venue_id'] = str(venue_id or '')
                 if not venue_id:
                     new_venues.append(
@@ -208,7 +209,7 @@ def events_to_csv(categories=None):
         f.write('\n'.join(new_venues))
 
     email.attach_file(events_csv_file.name)
-    email.attach_file(venues_csv_file.name)
+    # email.attach_file(venues_csv_file.name)
     email.send()
 
 
@@ -269,7 +270,7 @@ def _parse_event(event_json, category, proxy):
     event = {'title_heb': event_json['bizname'], 'start_time': _get_start_time(event_json),
              'venue_longitude': event_json['lng'], 'venue_latitude': event_json['lat'],
              'venue_phone_number': event_json.get('phone', '')}
-    print ('event json: ' + str(event_json))
+    print('event json: ' + str(event_json))
     address = event_json.get('address').split(',')
     if category in ['clubs', 'bars', 'sports_events', 'sports_activities', 'cafes', 'restaurants', 'family', 'spa',
                     'workshops']:
@@ -337,22 +338,21 @@ def venues_csv_to_db_objects(csv_path):
             print('longitude: ' + longitude)
             print('latitude: ' + latitude)
             print('link: ' + link)
-            ref_location = Point(float(longitude), float(latitude), srid=4326)
             defaults = {'name': name, 'name_heb': name_heb, 'street_address': street_address,
                         'street_address_heb': street_address_heb, 'city': city, 'city_heb': city_heb,
-                        'phone_number': phone_number, 'link': link, 'location': ref_location}
+                        'phone_number': phone_number, 'link': link, 'longitude': float(longitude), 'latitude': float(latitude)}
             venue, created = Venue.objects.get_or_create(name_heb=name_heb, city_heb=city_heb, defaults=defaults)
             if created:
-                print('created venue: ' + name + ', ' + name_heb)
+                print('****** created venue: ' + name + ', ' + name_heb + ' *************')
             else:
-                print('venue exists: ' + name + ', ' + name_heb)
+                print('****** venue exists: ' + name + ', ' + name_heb + ' ***********')
 
 
 def events_csv_to_db_objects(csv_path):
     # csv_path = '/home/amir/Downloads/tmpstc4gl24.csv'
     with open(csv_path, 'rt') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        for scraper_username, title, title_heb, start_time, end_time, artist_id, category_id, sub_categories, audiences_ids, short_description, short_description_heb, description, description_heb, price, image_url, venue_id, venue_name, venue_name_heb, venue_street_address, venue_street_addresss_heb, venue_city, venue_city_heb, venue_phone_number, venue_longitude, venue_latitude, venue_link, tickets_link in reader:
+        for scraper_username, title, title_heb, start_time, end_time, artist_id, category_id, sub_categories, audiences_ids, short_description, short_description_heb, description, description_heb, price, image_url, media_ids, venue_id, venue_name, venue_name_heb, venue_street_address, venue_street_addresss_heb, venue_city, venue_city_heb, venue_phone_number, venue_longitude, venue_latitude, venue_link, tickets_link in reader:
             print('scraper_username: ' + scraper_username)
             print('title:' + title)
             print('title_heb: ' + title_heb)
@@ -368,6 +368,7 @@ def events_csv_to_db_objects(csv_path):
             print('description_heb: ' + description_heb)
             print('price: ' + price)
             print('image_url: ' + image_url)
+            print('media_ids: ' + str(media_ids))
             print('venue_id: ' + venue_id)
             print('venue_name: ' + venue_name)
             print('venue_name_heb: ' + venue_name_heb)
@@ -408,13 +409,14 @@ def events_csv_to_db_objects(csv_path):
                         0].get('default_image')
                     if audiences_ids:
                         event.audiences.add(*audiences_ids.split(','))
+                    if media_ids:
+                        event.media.add(*media_ids.split(','))
                     event.save()
                     print('Event created: ' + str(event))
                 else:
                     print('Event already exists: ' + str(event))
             except Exception as e:
                 print('skipping event %s - error: %s' % (title_heb, str(e)))
-
 
 # def _parse_bars_event(event_json):
 #     title = event_json[bizname]

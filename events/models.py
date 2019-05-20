@@ -60,7 +60,7 @@ class Venue(models.Model):
 
 
     def __str__(self):
-        return self.name + ' - ' + self.city or '' + '(' + self.name_heb or '' + ' - ' + self.city_heb or '' + ')'
+        return self.name + ' - ' + (self.city or '') + ' (' + (self.name_heb or '') + ' - ' + (self.city_heb or '' )+ ')'
 
 
 class Media(models.Model):
