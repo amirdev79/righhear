@@ -412,9 +412,9 @@ def events_csv_to_db_objects(csv_path):
                 if media_ids:
                     event.media.add(*media_ids.split(','))
                 event.save()
-                print('Event created: ' + str(event))
+                print('***** Event created: ' + str(event) + '*****')
             else:
-                print('Event already exists: ' + str(event))
+                print('***** Event already exists: ' + str(event) + '*******')
             # except Exception as e:
             #     print('skipping event %s - error: %s' % (title_heb, str(e)))
 
