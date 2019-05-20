@@ -60,7 +60,8 @@ class Venue(models.Model):
 
 
     def __str__(self):
-        return self.name + ' - ' + (self.city or '') + ' (' + (self.name_heb or '') + ' - ' + (self.city_heb or '' )+ ')'
+        return '%d - %s - %s (%s - %s)' % (self.id, self.name, self.city or '', self.name_heb, self.city_heb or '')
+        return str(self.id) + self.name + ' - ' + (self.city or '') + ' (' + (self.name_heb or '') + ' - ' + (self.city_heb or '' )+ ')'
 
 
 class Media(models.Model):
@@ -146,12 +147,12 @@ class Event(models.Model):
     artist = models.ForeignKey(Artist, on_delete=models.SET_NULL, null=True)
     price = models.IntegerField(null=True)
     start_time = models.DateTimeField(null=True)
-    end_time = models.DateTimeField(null=True)
+    end_time = models.DateTimeField(null=True, blank=True)
     promotion = JSONField(null=True, blank=True)
     venue = models.ForeignKey(Venue, on_delete=models.SET_NULL, null=True)
     media = models.ManyToManyField(Media, blank=True)
     enabled = models.BooleanField(default=True)
-    image = models.ImageField(upload_to=events_media_path, blank=True)
+    image = models.ImageField(upload_to=events_media_path, null=True, blank=True)
     audiences = models.ManyToManyField(Audience)
     rating = models.IntegerField(default=0)
     tickets_link = models.URLField(blank=True)

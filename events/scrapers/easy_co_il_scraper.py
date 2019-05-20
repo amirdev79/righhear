@@ -388,35 +388,35 @@ def events_csv_to_db_objects(csv_path):
             if len(title_heb) > 50:
                 short_description_heb = title_heb
                 title_heb = title_heb[:50]
-            try:
-                if venue_id:
-                    venue = Venue.objects.get(id=int(venue_id))
-                else:
-                    venue = None
-                defaults = {'title': title, 'short_description': short_description,
-                            'short_description_heb': short_description_heb, 'description': description,
-                            'description_heb': description_heb, 'venue': venue, 'price': price or None,
-                            'created_by': easy_scraper_user, 'tickets_link': tickets_link}
-                event, created = Event.objects.get_or_create(title_heb=title_heb, start_time=start_time,
-                                                             defaults=defaults)
-                if created:
-                    if artist_id:
-                        event.artist = Artist.objects.get(id=int(artist_id))
-                    event.categories.add(category_id)
-                    if sub_categories:
-                        event.sub_categories.add(*sub_categories.split(','))
-                    event.image = [cat for cat in SCRAPER_CATEGORIES.values() if cat['admin_id'] == int(category_id)][
-                        0].get('default_image')
-                    if audiences_ids:
-                        event.audiences.add(*audiences_ids.split(','))
-                    if media_ids:
-                        event.media.add(*media_ids.split(','))
-                    event.save()
-                    print('Event created: ' + str(event))
-                else:
-                    print('Event already exists: ' + str(event))
-            except Exception as e:
-                print('skipping event %s - error: %s' % (title_heb, str(e)))
+            # try:
+            if venue_id:
+                venue = Venue.objects.get(id=int(venue_id))
+            else:
+                raise Exception('No Venue Id for event: ' + title_heb)
+            defaults = {'title': title, 'short_description': short_description,
+                        'short_description_heb': short_description_heb, 'description': description,
+                        'description_heb': description_heb, 'venue': venue, 'price': price or None,
+                        'created_by': easy_scraper_user, 'tickets_link': tickets_link}
+            event, created = Event.objects.get_or_create(title_heb=title_heb, start_time=start_time,
+                                                         defaults=defaults)
+            if created:
+                if artist_id:
+                    event.artist = Artist.objects.get(id=int(artist_id))
+                event.categories.add(category_id)
+                if sub_categories:
+                    event.sub_categories.add(*sub_categories.split(','))
+                event.image = [cat for cat in SCRAPER_CATEGORIES.values() if cat['admin_id'] == int(category_id)][
+                    0].get('default_image')
+                if audiences_ids:
+                    event.audiences.add(*audiences_ids.split(','))
+                if media_ids:
+                    event.media.add(*media_ids.split(','))
+                event.save()
+                print('Event created: ' + str(event))
+            else:
+                print('Event already exists: ' + str(event))
+            # except Exception as e:
+            #     print('skipping event %s - error: %s' % (title_heb, str(e)))
 
 # def _parse_bars_event(event_json):
 #     title = event_json[bizname]

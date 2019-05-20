@@ -19,7 +19,7 @@ def get_event_image(request, event):
     elif event.artist and event.artist.image:
         return request.build_absolute_uri(event.artist.image.url)
     else:
-        return None
+        return request.build_absolute_uri('/static/images/events/categories_defauls/music_default.jpg')
 
 
 def calculate_distance(from_lng, from_lat, to_lng, to_lat):

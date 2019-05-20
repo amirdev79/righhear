@@ -57,7 +57,7 @@ def _events_to_json(request, events, up):
         'venue': {'name': _by_lang(event.venue, 'name'), 'streetAddress': _by_lang(event.venue, 'street_address'),
                   'city': _by_lang(event.venue, 'city'), 'distance': int(event.distance.m)},
         'artist': {'firstName': event.artist.first_name, 'lastName': event.artist.last_name,
-                   'image': request.build_absolute_uri(event.artist.image.url),
+                   'image': request.build_absolute_uri(event.artist.image.url) if event.artist and event.artist.image else '',
                    'media': [{'type': m.type, 'link': m.link} for m in
                              event.artist.media.all()]} if event.artist else None,
         'media': [{'type': m.type, 'link': m.link, 'youtubeId': m.youtube_id, 'playbackStart': m.playback_start,
@@ -79,7 +79,7 @@ def get_events(request):
     print (user_lat)
     ref_location = Point(float(user_lng), float(user_lat), srid=4326)
     valid = Q(title__isnull=False, enabled=True)  # , start_time__gte=timezone.now())
-    events = Event.objects.filter(valid).annotate(distance=Distance('venue__location', ref_location)).order_by(
+    events = Event.objects.filter(id__gte=318).filter(valid).annotate(distance=Distance('venue__location', ref_location)).order_by(
         'distance')[:EVENTS_PAGE_SIZE]
 
     if top_event_id and top_event_id != -1:
