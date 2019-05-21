@@ -340,7 +340,8 @@ def venues_csv_to_db_objects(csv_path):
             print('link: ' + link)
             defaults = {'name': name, 'name_heb': name_heb, 'street_address': street_address,
                         'street_address_heb': street_address_heb, 'city': city, 'city_heb': city_heb,
-                        'phone_number': phone_number, 'link': link, 'longitude': float(longitude), 'latitude': float(latitude)}
+                        'phone_number': phone_number, 'link': link, 'longitude': float(longitude),
+                        'latitude': float(latitude)}
             venue, created = Venue.objects.get_or_create(name_heb=name_heb, city_heb=city_heb, defaults=defaults)
             if created:
                 print('****** created venue: ' + name + ', ' + name_heb + ' *************')

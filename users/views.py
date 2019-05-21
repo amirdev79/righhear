@@ -22,11 +22,13 @@ CONNECT_PEOPLE_RESPONSE_SUCCESS = 0
 
 @csrf_exempt
 def sign_in(request):
-    username, device_info, categories_ids = parse_request(request, ['username', 'deviceInfo'], ['categoriesIds'])
+    username, device_info, lang_code, categories_ids = parse_request(request, ['username', 'deviceInfo', 'langCode'], ['categoriesIds'])
     device_info = json.loads(device_info)
     user, created = User.objects.get_or_create(username=username)
     up, up_created = UserProfile.objects.get_or_create(user=user)
     if up_created:
+        up.preferred_language = lang_code
+        up.save()
         print('user created: username - ' + up.user.username)
     else:
         print('user signed in: username - ' + up.user.username)
