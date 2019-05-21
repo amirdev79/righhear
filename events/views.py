@@ -16,7 +16,7 @@ from utils.network import parse_request
 RELATED_USER_FIELDS = ['related_user__id', 'related_user__user__first_name',
                        'related_user__user_data__fb_profile_image_normal']
 
-EVENTS_PAGE_SIZE = 20;
+EVENTS_PAGE_SIZE = 100;
 USER_EVENTS_PAGE_SIZE = 20;
 
 
@@ -82,7 +82,7 @@ def get_events(request):
     events = Event.objects.filter(id__gte=318).filter(valid).annotate(distance=Distance('venue__location', ref_location)).order_by(
         'distance')[:EVENTS_PAGE_SIZE]
 
-    if top_event_id and top_event_id != -1:
+    if top_event_id and top_event_id != '-1':
         events = list(Event.objects.filter(id=top_event_id)) + list(events)
     events_json = _events_to_json(request, events, request.user.userprofile)
     return JsonResponse(events_json, safe=False)
