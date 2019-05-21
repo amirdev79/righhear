@@ -3,6 +3,7 @@ import googlemaps
 from righthear import settings
 from math import sin, cos, sqrt, atan2, radians
 
+
 def get_gmaps_info(address):
     gmaps = googlemaps.Client(key=settings.GOOGLE_API_KEY)
     geocode_result = gmaps.geocode(address)
@@ -19,7 +20,8 @@ def get_event_image(request, event):
     elif event.artist and event.artist.image:
         return request.build_absolute_uri(event.artist.image.url)
     else:
-        return request.build_absolute_uri('/static/images/events/categories_defauls/music_default.jpg')
+        default_image_path = '/static/images/events/categories_defauls/%s_default.jpg' % event.categories.first().icon_name
+        return request.build_absolute_uri(default_image_path)
 
 
 def calculate_distance(from_lng, from_lat, to_lng, to_lat):

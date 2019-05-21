@@ -22,7 +22,7 @@ SCRAPER_CATEGORIES = {
     'music': {'easy_id': 5818, 'admin_id': 0, 'sub_category_admin_id': [0],
               'default_image': ImageFile(open("static/images/events/categories_defauls/music_default.jpg", "rb"))},
     'bars': {'easy_id': 424, 'admin_id': 4, 'sub_category_admin_id': [14],
-             'default_image': ImageFile(open("static/images/events/categories_defauls/bars_default.jpeg", "rb"))},
+             'default_image': ImageFile(open("static/images/events/categories_defauls/bars_default.jpg", "rb"))},
     'theater': {'easy_id': 12877, 'admin_id': 5, 'sub_category_admin_id': [8], 'default_image': None},
     'standup': {'easy_id': 12879, 'admin_id': 6, 'sub_category_admin_id': [15], 'default_image': None},
     'movies': {'easy_id': 12953, 'admin_id': 5, 'sub_category_admin_id': [4], 'default_image': None},
