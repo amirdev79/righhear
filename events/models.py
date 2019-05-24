@@ -156,6 +156,7 @@ class Event(models.Model):
     audiences = models.ManyToManyField(Audience)
     rating = models.IntegerField(default=0)
     tickets_link = models.URLField(blank=True)
+    additional_info = JSONField(null=True, blank=True)
 
     def __str__(self):
         return str(self.id) + ' - ' + self.title or '' + ', ' + self.title_heb or ''
