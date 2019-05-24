@@ -52,6 +52,7 @@ class Venue(models.Model):
     longitude = models.DecimalField(max_digits=9, decimal_places=6, editable=True, blank=False, default=0)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, editable=True, blank= False, default=0)
     location = PointField(null=True, blank=True, srid=4326, verbose_name="Location")
+    additional_info = JSONField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         # Do the maths here to calculate lat/lon
