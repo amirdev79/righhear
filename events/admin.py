@@ -10,7 +10,7 @@ class ArtistAdmin(admin.ModelAdmin):
 
 
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('id', 'created_by', 'create_time', 'title', 'artist', 'venue', 'enabled')
+    list_display = ('id', 'created_by', 'create_time', 'title', 'title_heb', 'artist', 'venue', 'enabled')
     filter_horizontal = ('media', 'sub_categories',)
 
 
