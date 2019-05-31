@@ -82,10 +82,16 @@ def get_events(request):
     valid = Q(title__isnull=False, enabled=True)  # , start_time__gte=timezone.now())
     events = Event.objects.filter(id__gte=318).filter(valid).annotate(
         distance=Distance('venue__location', ref_location)).order_by(
-        'distance')[:EVENTS_PAGE_SIZE]
+        'distance')
 
     if top_event_id and top_event_id != '-1':
-        events = list(Event.objects.filter(id=top_event_id)) + list(events)
+        top_event = Event.objects.filter(id=top_event_id).annotate(
+        distance=Distance('venue__location', ref_location))
+        events = events.exclude(id=top_event_id)[:EVENTS_PAGE_SIZE - 1]
+        events = list(top_event) + list(events)
+    else:
+        events = events[:EVENTS_PAGE_SIZE]
+
     events_json = _events_to_json(request, events, request.user.userprofile)
     return JsonResponse(events_json, safe=False)
 
