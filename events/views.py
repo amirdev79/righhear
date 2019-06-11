@@ -76,11 +76,10 @@ def _events_to_json(request, events, up):
 @login_required
 def get_events(request):
     top_event_id, user_lng, user_lat = parse_request(request, ['topEventId', 'lng', 'lat'])
-    print(user_lng)
-    print(user_lat)
+    up = request.user.userprofile
     ref_location = Point(float(user_lng), float(user_lat), srid=4326)
     valid = Q(title__isnull=False, enabled=True)  # , start_time__gte=timezone.now())
-    events = Event.objects.filter(id__gte=318).filter(valid).annotate(
+    events = Event.objects.filter(id__gte=318).filter(valid).filter(categories__in=up.preferred_categories.values_list('id', flat=True)).annotate(
         distance=Distance('venue__location', ref_location)).order_by(
         'distance')
 
@@ -92,14 +91,14 @@ def get_events(request):
     else:
         events = events[:EVENTS_PAGE_SIZE]
 
-    events_json = _events_to_json(request, events, request.user.userprofile)
+    events_json = _events_to_json(request, events, up)
     return JsonResponse(events_json, safe=False)
 
 
 @csrf_exempt
 @login_required
 def get_user_selected_events(request):
-    page, user_lng, user_lat = parse_request(request, ['page', 'lng', 'lat'])
+    page, user_lng, user_lat, categories_ids = parse_request(request, ['page', 'lng', 'lat'], ['categoriesIds'])
     page = int(page)
     up = request.user.userprofile
 
@@ -107,8 +106,13 @@ def get_user_selected_events(request):
                                                          action=UserSwipeAction.ACTION_RIGHT)
     selected_events_ids = swipe_right_actions.values_list('event', flat=True)
     ref_location = Point(float(user_lng), float(user_lat), srid=4326)
-    selected_events = Event.objects.filter(id__in=selected_events_ids).filter(id__gte=318).annotate(
+    selected_events = Event.objects.filter(id__in=selected_events_ids).filter(id__gte=318)
+    if categories_ids:
+        selected_events = selected_events.filter(categories__in=categories_ids)
+    selected_events = selected_events.annotate(
         distance=Distance('venue__location', ref_location)).order_by('distance')
+    if categories_ids:
+        selected_events = selected_events.filter(categories_ids)
     events_json = _events_to_json(request, selected_events[
                                            page * USER_EVENTS_PAGE_SIZE:(page + 1) * USER_EVENTS_PAGE_SIZE], up)
 

@@ -50,7 +50,7 @@ class Venue(models.Model):
     link = models.URLField(blank=True, max_length=400)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, editable=True, blank=False, default=0)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, editable=True, blank= False, default=0)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, editable=True, blank=False, default=0)
     location = PointField(null=True, blank=True, srid=4326, verbose_name="Location")
     additional_info = JSONField(null=True, blank=True)
 
@@ -59,10 +59,10 @@ class Venue(models.Model):
         self.location = Point(x=float(self.longitude), y=float(self.latitude), srid=4326)
         super(Venue, self).save(*args, **kwargs)
 
-
     def __str__(self):
         return '%d - %s - %s (%s - %s)' % (self.id, self.name, self.city or '', self.name_heb, self.city_heb or '')
-        return str(self.id) + self.name + ' - ' + (self.city or '') + ' (' + (self.name_heb or '') + ' - ' + (self.city_heb or '' )+ ')'
+        return str(self.id) + self.name + ' - ' + (self.city or '') + ' (' + (self.name_heb or '') + ' - ' + (
+                self.city_heb or '') + ')'
 
 
 class Media(models.Model):
