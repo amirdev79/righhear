@@ -20,8 +20,7 @@ def get_event_image(request, event):
     elif event.artist and event.artist.image:
         return request.build_absolute_uri(event.artist.image.url)
     else:
-        default_image_path = '/static/images/events/categories_defauls/%s_default.jpg' % event.categories.first().icon_name
-        return request.build_absolute_uri(default_image_path)
+        return request.build_absolute_uri(event.categories.first().image.url)
 
 
 def calculate_distance(from_lng, from_lat, to_lng, to_lat):
