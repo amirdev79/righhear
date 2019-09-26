@@ -18,6 +18,8 @@ from events.utils import get_gmaps_info
 from righthear import settings
 from users.models import UserProfile
 
+
+# category id at easy, category id in our database (admin_id). if the easy category is mapped to a sub category at our db (e.g. clubs) - also indicate the sub categorys
 SCRAPER_CATEGORIES = {
     'music': {'easy_id': 5818, 'admin_id': 0, 'sub_category_admin_id': [0],
               'default_image': ImageFile(open("static/images/events/categories_defauls/music_default.jpg", "rb"))},
@@ -38,8 +40,12 @@ SCRAPER_CATEGORIES = {
 
 now = datetime.datetime.now()
 tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+
+# every event must have a user that created him. this is the user used for events created by Easy scaper
 easy_scraper_user = UserProfile.objects.get(user__username=settings.EASY_CO_IL_USERNAME)
 
+
+# base dictionary for event data
 DEFAULTS_FOR_SCRAPER = {'title': '',
                         'description': '',
                         'scraper_username': settings.EASY_CO_IL_USERNAME,
@@ -57,6 +63,7 @@ DEFAULTS_FOR_SCRAPER = {'title': '',
                         'audiences': '',
                         }
 
+# the csv columns
 CSV_EVENTS_FIELDS = [
     'scraper_username', 'title', 'title_heb', 'start_time', 'end_time', 'artist_id', 'category_id',
     'sub_categories_ids', 'audiences_ids', 'short_description', 'short_description_heb', 'description',
@@ -66,16 +73,18 @@ CSV_EVENTS_FIELDS = [
     'venue_phone_number', 'venue_longitude',
     'venue_latitude', 'venue_link', 'tickets']
 
+# not relevant - ignore
 CSV_VENUES_FIELDS = [
     'name', 'name_heb', 'street_address', 'street_address_heb', 'city', 'city_heb', 'phone_number', 'longitude',
     'latitude', 'link'
 ]
 
-
+# parse date-time string - convert to datetime object
 def _to_datetime(datetime_str):
     return datetime.datetime.strptime(datetime_str, '%d.%m.%y, %H:%M').astimezone()
 
 
+# when iterating events from the main page, for some events we need additional info from the dedicated event page
 def _get_event_page_info(url, proxy):
     info = {}
     page_id = url[url.rindex('/') + 1:]
@@ -87,6 +96,7 @@ def _get_event_page_info(url, proxy):
     return info
 
 
+# chec if event already exists in DB so we don't add it again
 def _is_event_exists(event_json, existing_events_cmp_fields):
     parsed_start_time = _get_start_time(event_json)
     if parsed_start_time:
@@ -99,6 +109,7 @@ def _is_event_exists(event_json, existing_events_cmp_fields):
     return event_cmp_fields in existing_events_cmp_fields
 
 
+# parse venue from easy event data and check if exists in DB
 def _get_venue_id(parsed):
     Q1 = Q(name_heb=parsed['venue_name_heb'], city=parsed['venue_city_heb'])
     Q2 = Q(location=Point(float(parsed['venue_longitude']), float(parsed['venue_latitude']),
@@ -108,6 +119,7 @@ def _get_venue_id(parsed):
     return venue.id if venue else None
 
 
+# the whole flow of getting a cateogry name e.g. music, bars etc.. scrape easy for that category events and export data to csv
 def _events_category_to_csv(category, proxies):
     print('****************** doing category ' + category + ' ***************')
     events = get_events(category)
@@ -183,6 +195,7 @@ def _events_category_to_csv(category, proxies):
     return new_events, set(new_venues)
 
 
+# the main function to initate the scraping - you provide a list of categories ['music', 'theater'...]
 def events_to_csv(categories=None):
     new_events = [','.join(CSV_EVENTS_FIELDS)]
     new_venues = [','.join(CSV_VENUES_FIELDS)]
@@ -193,6 +206,7 @@ def events_to_csv(categories=None):
         new_events += new_events_for_cateogry
         new_venues += new_venues_for_cateogry
 
+    # send the csv file as attachment to right hear email
     email = EmailMessage(
         'Easy.co.il Events scraper. categories: ' + str(categories),
         'See attached CSV. please update the fields: title, description, short description (non hebrew ones)\nDo not touch the venue fields!',
@@ -213,6 +227,7 @@ def events_to_csv(categories=None):
     email.send()
 
 
+# make request to get the events data for a specific category
 def get_events(category):
     events_list = []
     current_page = 0
@@ -231,6 +246,7 @@ def get_events(category):
     return events_list
 
 
+# get start time from easy format. somtimes they use date and time, sometimes מחר, sometimes היום...
 def _get_start_time(event_json):
     # get datetime
     _date, _time = None, None
@@ -258,6 +274,7 @@ def _get_start_time(event_json):
     return start_time.strftime('%d.%m.%y, %H:%M') if start_time else None
 
 
+# parse the price
 def _get_price(event_json):
     prop = event_json.get('prop')
     if prop and 'title' in prop[0] and '₪' in prop[0]['title']:
@@ -266,6 +283,7 @@ def _get_price(event_json):
         return ''
 
 
+# parse the event details
 def _parse_event(event_json, category, proxy):
     event = {'title_heb': event_json['bizname'], 'start_time': _get_start_time(event_json),
              'venue_longitude': event_json['lng'], 'venue_latitude': event_json['lat'],
@@ -321,6 +339,7 @@ def _parse_event(event_json, category, proxy):
     return event
 
 
+# not in use - ignore
 def venues_csv_to_db_objects(csv_path):
     # csv_path = '/home/amir/Downloads/tmphkhu5ky7.csv'
     with open(csv_path, 'rt') as csvfile:
@@ -349,6 +368,7 @@ def venues_csv_to_db_objects(csv_path):
                 print('****** venue exists: ' + name + ', ' + name_heb + ' ***********')
 
 
+# after the CSV is edited by Adva and Aviv. they send it to you and you run this function
 def events_csv_to_db_objects(csv_path):
     # csv_path = '/home/amir/Downloads/tmpstc4gl24.csv'
     with open(csv_path, 'rt') as csvfile:
