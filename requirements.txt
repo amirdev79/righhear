@@ -3,7 +3,7 @@ psycopg2-binary==2.7.5
 Pillow==5.2.0
 gunicorn==19.9.0
 googlemaps==3.0.2
-ipython==5.5.0
+ipython==7.16.3
 facebook-sdk==3.1.0
 django-admin-sortable==2.1.11
 lxml==4.3.3
