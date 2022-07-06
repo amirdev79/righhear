@@ -6,4 +6,4 @@ googlemaps==3.0.2
 ipython==5.5.0
 facebook-sdk==3.1.0
 django-admin-sortable==2.1.11
-lxml==4.3.3
+lxml==4.9.1
